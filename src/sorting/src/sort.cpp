@@ -66,19 +66,25 @@ std::vector<double> Cable::Sort::frodriguez(std::vector<double> &origin, std::ve
 
     std::vector<double> temp, rot;
     std::vector<std::vector<double>> comp;
-
+    temp.clear();
     // component 1 : v*cos(angle)
     comp.push_back(fscale(origin, cos(angle)));
-
+    ROS_INFO("Good so far 7");
     // component 2 : (k x v)*sin(angle)
     temp = fcross(axis, origin);
+    for (auto x : temp)
+    {
+        std::cout << x << ", ";
+    }
+    std::cout << std::endl;
     comp.push_back(fscale(temp, sin(angle)));
 
     // component 3 : k (k dot v)( 1 - cos(angle) )
     comp.push_back(fscale(axis, fdot(axis, origin) * (1 - cos(angle))));
-
-    rot.assign(comp[0].size(),0.0);
-    for(int i=0; i<comp[0].size(); i++)
+    ROS_INFO("Good so far 9");
+    rot.assign(comp[0].size(), 0.0);
+    ROS_INFO("Good so far 10");
+    for (int i = 0; i < comp[0].size(); i++)
     {
         rot[i] = comp[0][i] + comp[1][i] + comp[2][i];
     }
@@ -88,29 +94,37 @@ std::vector<double> Cable::Sort::frodriguez(std::vector<double> &origin, std::ve
 
 void Cable::Sort::init(std::vector<std::vector<double>> &ps)
 {
-    Prob.clear();
-    Prob.assign(ps.size(), 0.0);
-
     Direction.clear();
     Direction.push_back(StartN);
+
+    ps.insert(ps.begin(), StartP);
 };
 
 void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
 {
-    init(ps);
 
-    for (int i = 0; i < ps.size() - 1; i++)
+    init(ps);
     // i < size-1 because
     // there's no need to find the next point for the last one
+    for (int i = 0; i < ps.size() - 1; i++)
     {
+        Prob.clear();
+        Prob.assign(ps.size(), 0.0);
+
         for (int j = i + 1; j < ps.size(); j++)
         {
-            Prob.assign(ps.size(), 0.0);
+            PositionalDiff.clear();
+
             for (int k = 0; k < 3; k++)
             {
                 // PositionalDiff = (pi+1) - (pi)
                 PositionalDiff.push_back(ps[j][k] - ps[i][k]);
             }
+            for (auto x : PositionalDiff)
+            {
+                std::cout << x << ", ";
+            }
+            std::cout << std::endl;
 
             // find the angle theta
             theta = fangle(Direction[i], PositionalDiff);
@@ -124,6 +138,12 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
 
         // Find the max probability and its corresponding index
         int MaxIdx = std::max_element(Prob.begin(), Prob.end()) - Prob.begin();
+        for (auto x : Prob)
+        {
+            std::cout << x << ", ";
+        }
+        std::cout << std::endl;
+        std::cout << MaxIdx << std::endl;
         swap(ps[i + 1], ps[MaxIdx]);
 
         for (int k = 0; k < 3; k++)
@@ -131,11 +151,17 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
             // PositionalDiff = (pi+1) - (pi)
             PositionalDiff.push_back(ps[i + 1][k] - ps[i][k]);
         }
+
         Normal = fcross(Direction[i], PositionalDiff);
+        ROS_INFO("Good so far 4");
         // Normalize ( Scale to 0 - 1 )
         Normal = fscale(Normal, fnorm(Normal));
+        ROS_INFO("Good so far 5");
 
         rot_angle = fangle(Direction[i], PositionalDiff);
-        Direction.push_back(frodriguez(Direction[i], Normal, 2 * rot_angle));
+        ROS_INFO("Good so far 6");
+        std::vector<double> direction_rot = frodriguez(Direction[i], Normal, 2 * rot_angle);
+
+        Direction.push_back(direction_rot);
     }
 };
