@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseArray.h>
 #include <sorting/sort.hpp>
+#include <sorting/paraspline.h>
 
 std::vector<std::vector<double>> PointSet;
 std::vector<double> startN; // Known normal vector for the starting
@@ -23,7 +24,6 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
 {
     PointSet.clear();
     startP.clear();
-    ROS_INFO("Poses are caught!");
     std::vector<double> temp; // Temporary point tuple of (x,y,z)
     //------------------------------------------------------------------------------
     // extract the coordinates form the pose array
@@ -35,7 +35,6 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
         if (i == 0)
         {
             startP = temp;
-
         }
         else
         {
@@ -43,6 +42,11 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
             PointSet.push_back(temp);
         }
         temp.clear();
+    }
+
+    if (PointSet.size() >= 1)
+    {
+        ROS_INFO("Poses are caught!");
     }
 };
 
@@ -72,7 +76,6 @@ int main(int argc, char **argv)
 
     ros::Rate rate(50);
 
-    
     while (nh.ok())
     {
 
@@ -109,6 +112,7 @@ int main(int argc, char **argv)
             }
         }
         ros::spinOnce();
+        rate.sleep();
     }
 
     return 0;

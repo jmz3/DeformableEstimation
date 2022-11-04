@@ -22,11 +22,29 @@ double Cable::Sort::fdot(std::vector<double> &a, std::vector<double> &b)
 
 std::vector<double> Cable::Sort::fcross(std::vector<double> &a, std::vector<double> &b)
 {
-    std::vector<double> cross(a.size());
+    std::vector<double> cross;
+    cross.clear();
+    cross.assign(3, 0.0);
+    // std::cout << a.size() << ", " << b.size() << std::endl;
+
+    ROS_ASSERT(a.size() == 3);
+    ROS_ASSERT(b.size() == 3); // Ensure inner product is performed for 3x1 vector.
+
+    // std::cout << "norm of a is: " << fnorm(a) << std::endl;
+    // ROS_INFO("A is ");
+    //     for (auto x : a)
+    // {
+    //     std::cout << x << std::endl;
+    // }
+
     cross[0] = a[1] * b[2] - a[2] * b[1];
     cross[1] = a[2] * b[0] - a[0] * b[2];
     cross[2] = a[0] * b[1] - a[1] * b[0];
 
+    // for (auto x : cross)
+    // {
+    //     std::cout << x << std::endl;
+    // }
     return cross;
 };
 
@@ -50,7 +68,7 @@ double Cable::Sort::fangle(std::vector<double> &a, std::vector<double> &b)
     return atan2(B, C);
 };
 
-std::vector<double> Cable::Sort::fscale(std::vector<double> &a, double scalar)
+void Cable::Sort::fscale(std::vector<double> &a, double scalar)
 {
     for (int i = 0; i < a.size(); i++)
     {
@@ -63,27 +81,26 @@ std::vector<double> Cable::Sort::frodriguez(std::vector<double> &origin, std::ve
     // a is the original vector
     // b is an unit vector that describes the rotation axis
     // angle is the rotation angle along b
-
+    ROS_ASSERT(fnorm(axis) < 1 + 1e-6);
     std::vector<double> temp, rot;
     std::vector<std::vector<double>> comp;
+
     temp.clear();
     // component 1 : v*cos(angle)
-    comp.push_back(fscale(origin, cos(angle)));
-    ROS_INFO("Good so far 7");
+    fscale(origin, cos(angle));
+    comp.push_back(origin);
+
     // component 2 : (k x v)*sin(angle)
     temp = fcross(axis, origin);
-    for (auto x : temp)
-    {
-        std::cout << x << ", ";
-    }
-    std::cout << std::endl;
-    comp.push_back(fscale(temp, sin(angle)));
+    fscale(temp, sin(angle));
+    comp.push_back(temp);
 
     // component 3 : k (k dot v)( 1 - cos(angle) )
-    comp.push_back(fscale(axis, fdot(axis, origin) * (1 - cos(angle))));
-    ROS_INFO("Good so far 9");
+    fscale(axis, fdot(axis, origin) * (1 - cos(angle)));
+    comp.push_back(axis);
+
     rot.assign(comp[0].size(), 0.0);
-    ROS_INFO("Good so far 10");
+    // ROS_INFO("Good so far 10");
     for (int i = 0; i < comp[0].size(); i++)
     {
         rot[i] = comp[0][i] + comp[1][i] + comp[2][i];
@@ -120,11 +137,11 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
                 // PositionalDiff = (pi+1) - (pi)
                 PositionalDiff.push_back(ps[j][k] - ps[i][k]);
             }
-            for (auto x : PositionalDiff)
-            {
-                std::cout << x << ", ";
-            }
-            std::cout << std::endl;
+            // for (auto x : PositionalDiff)
+            // {
+            //     std::cout << x << ", ";
+            // }
+            // std::cout << std::endl;
 
             // find the angle theta
             theta = fangle(Direction[i], PositionalDiff);
@@ -138,14 +155,15 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
 
         // Find the max probability and its corresponding index
         int MaxIdx = std::max_element(Prob.begin(), Prob.end()) - Prob.begin();
-        for (auto x : Prob)
-        {
-            std::cout << x << ", ";
-        }
-        std::cout << std::endl;
-        std::cout << MaxIdx << std::endl;
+        // for (auto x : Prob)
+        // {
+        //     std::cout << x << ", ";
+        // }
+        // std::cout << std::endl;
+        // std::cout << MaxIdx << std::endl;
         swap(ps[i + 1], ps[MaxIdx]);
 
+        PositionalDiff.clear();
         for (int k = 0; k < 3; k++)
         {
             // PositionalDiff = (pi+1) - (pi)
@@ -153,15 +171,16 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
         }
 
         Normal = fcross(Direction[i], PositionalDiff);
-        ROS_INFO("Good so far 4");
+
         // Normalize ( Scale to 0 - 1 )
-        Normal = fscale(Normal, fnorm(Normal));
-        ROS_INFO("Good so far 5");
+        fscale(Normal, 1.0 / fnorm(Normal));
+        ROS_ASSERT(fnorm(Normal) < 1 + 1e-6); // Ensure the normal is unit vector
 
         rot_angle = fangle(Direction[i], PositionalDiff);
-        ROS_INFO("Good so far 6");
+
         std::vector<double> direction_rot = frodriguez(Direction[i], Normal, 2 * rot_angle);
 
         Direction.push_back(direction_rot);
     }
+    ROS_INFO("Sort Complete!");
 };

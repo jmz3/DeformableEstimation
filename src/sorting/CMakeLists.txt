@@ -124,6 +124,9 @@ include_directories(
 add_library(sort
   src/sort.cpp
 )
+add_library(spline
+  src/spline.h
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -149,9 +152,13 @@ add_executable(interp_node src/interp_node.cpp)
 target_link_libraries(sort
   ${catkin_LIBRARIES}
 )
+target_link_libraries(spline
+  ${catkin_LIBRARIES}
+)
 target_link_libraries(interp_node
   ${catkin_LIBRARIES}
   sort
+  spline
 )
 
 #############

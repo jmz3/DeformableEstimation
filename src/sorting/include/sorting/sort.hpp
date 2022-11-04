@@ -36,7 +36,7 @@ namespace Cable
         double fdot(std::vector<double> &a, std::vector<double> &b);
 
 
-        std::vector<double> fscale(std::vector<double> &a, double s);
+        void fscale(std::vector<double> &a, double s);
         std::vector<double> frodriguez(std::vector<double> &origin, std::vector<double> &axis, double angle);
         std::vector<double> fcross(std::vector<double> &a, std::vector<double> &b);
     };
