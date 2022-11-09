@@ -124,8 +124,11 @@ include_directories(
 add_library(sort
   src/sort.cpp
 )
-add_library(spline
-  src/spline.h
+add_library(paraspline
+  src/paraspline.cpp
+)
+add_library(utilities
+  src/utilities.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -137,6 +140,7 @@ add_library(spline
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(interp_node src/interp_node.cpp)
+add_executable(test_node src/test_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -152,13 +156,21 @@ add_executable(interp_node src/interp_node.cpp)
 target_link_libraries(sort
   ${catkin_LIBRARIES}
 )
-target_link_libraries(spline
+target_link_libraries(paraspline
   ${catkin_LIBRARIES}
+)
+target_link_libraries(utilities
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(test_node
+  ${catkin_LIBRARIES}
+  utilities
+  paraspline
 )
 target_link_libraries(interp_node
   ${catkin_LIBRARIES}
   sort
-  spline
+  paraspline
 )
 
 #############

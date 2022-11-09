@@ -41,6 +41,8 @@ void Cable::paraspline::set_points(const std::vector<double> &x,
     m_type = type;
     m_x = x;
     m_y = y;
+    std::cout << "m_x.size() = " << m_x.size() << std::endl;
+    std::cout << "m_y.size() = " << m_y.size() << std::endl;
     int n = (int)x.size();
 
     // Ensure the input independent variable to be monotonic
@@ -166,24 +168,35 @@ double Cable::paraspline::operator()(double x) const
     //   - Even-Odd method by A.C.R. Newbery
     //   - Compensated Horner Scheme
     size_t n = m_x.size();
+
     size_t idx = find_closest(x);
     double h = x - m_x[idx];
     double interpol;
     if (x < m_x[0])
     {
         // extrapolation to the left
+        ROS_INFO("So far so good if 1");
         interpol = (m_c0 * h + m_b[0]) * h + m_y[0];
     }
     else if (x > m_x[n - 1])
     {
         // extrapolation to the right
+        ROS_INFO("So far so good else if 1");
         interpol = (m_c[n - 1] * h + m_b[n - 1]) * h + m_y[n - 1];
     }
     else
     {
         // interpolation
+        ROS_INFO("So far so good else 1");
+        std::cout << "idx: " << idx << std::endl;
+        std::cout << "h: " << h << std::endl;
+        std::cout << "m_d[idx]: " << m_d[idx] << std::endl;
+        std::cout << "m_c[idx]: " << m_c[idx] << std::endl;
+        std::cout << "m_b[idx]: " << m_b[idx] << std::endl;
+
         interpol = ((m_d[idx] * h + m_c[idx]) * h + m_b[idx]) * h + m_y[idx];
     }
+    ROS_INFO("So far so good");
     return interpol;
 }
 
@@ -349,7 +362,7 @@ int Cable::band_matrix::dim() const
 double &Cable::band_matrix::operator()(int i, int j)
 {
     int k = i - j;
-    ROS_ASSERT(( i >= 0 ) && (i < dim()) && (j >= 0) && (j < dim()));
+    ROS_ASSERT((i >= 0) && (i < dim()) && (j >= 0) && (j < dim()));
     ROS_ASSERT((-num_lower() <= k) && (k <= num_upper()));
     // k=0 -> diagonal, k<0 lower left part, k>0 upper right part
     if (k >= 0)
@@ -364,8 +377,8 @@ double &Cable::band_matrix::operator()(int i, int j)
 
 double Cable::band_matrix::operator()(int i, int j) const
 {
-    int k = j - i; //what band is the entry
-    ROS_ASSERT(( i >= 0 ) && (i < dim()) && (j >= 0) && (j < dim()));
+    int k = j - i; // what band is the entry
+    ROS_ASSERT((i >= 0) && (i < dim()) && (j >= 0) && (j < dim()));
     ROS_ASSERT((-num_lower() <= k) && (k <= num_upper()));
     // k=0 -> diagonal, k<0 lower left part, k>0 upper right part
     if (k >= 0)
@@ -381,13 +394,13 @@ double Cable::band_matrix::operator()(int i, int j) const
 // second diag (used in LU decomposition). saved in m_lower
 double Cable::band_matrix::saved_diag(int i) const
 {
-    ROS_ASSERT(( i >= 0 ) && (i < dim()));
+    ROS_ASSERT((i >= 0) && (i < dim()));
     return m_lower[0][i];
 }
 
-double & Cable::band_matrix::saved_diag(int i)
+double &Cable::band_matrix::saved_diag(int i)
 {
-    ROS_ASSERT(( i >= 0 ) && (i < dim()));
+    ROS_ASSERT((i >= 0) && (i < dim()));
     return m_lower[0][i];
 }
 
@@ -406,7 +419,7 @@ void Cable::band_matrix::lu_decompose()
         this->saved_diag(i) = 1.0 / this->operator()(i, i);
         j_min = std::max(0, i - this->num_lower());
         j_max = std::min(this->dim() - 1, i + this->num_upper());
-        for(int j=j_min; j<=j_max; j++)
+        for (int j = j_min; j <= j_max; j++)
         {
             this->operator()(i, j) *= this->saved_diag(i);
         }
@@ -414,14 +427,17 @@ void Cable::band_matrix::lu_decompose()
     }
 
     // Gauss LR-Decomposition
-    for(int k=0; k<this->dim(); k++){
+    for (int k = 0; k < this->dim(); k++)
+    {
         i_max = std::min(this->dim() - 1, k + this->num_lower());
-        for(int i=k+1; i<=i_max; i++){
+        for (int i = k + 1; i <= i_max; i++)
+        {
             ROS_ASSERT(this->operator()(k, k) != 0.0);
             x = -this->operator()(i, k) / this->operator()(k, k);
             this->operator()(i, k) = -x;
             j_max = std::min(this->dim() - 1, k + this->num_upper());
-            for(int j=k+1; j<=j_max; j++){
+            for (int j = k + 1; j <= j_max; j++)
+            {
                 this->operator()(i, j) += x * this->operator()(k, j);
             }
         }
@@ -431,19 +447,21 @@ void Cable::band_matrix::lu_decompose()
 // solves Ly = b
 std::vector<double> Cable::band_matrix::l_solve(const std::vector<double> &b) const
 {
-    ROS_ASSERT(this->dim() == (int)b.size() );
+    ROS_ASSERT(this->dim() == (int)b.size());
     std::vector<double> x(this->dim());
     int j_start;
     double sum;
 
-    for(int i=0; i<this->dim(); i++){
+    for (int i = 0; i < this->dim(); i++)
+    {
         sum = 0.0;
         j_start = std::max(0, i - this->num_lower());
 
-        for(int j=j_start; j<i; j++){
+        for (int j = j_start; j < i; j++)
+        {
             sum += this->operator()(i, j) * x[j];
         }
-        x[i]=(b[i]*this->saved_diag(i)) - sum;
+        x[i] = (b[i] * this->saved_diag(i)) - sum;
     }
     return x;
 }
@@ -451,16 +469,18 @@ std::vector<double> Cable::band_matrix::l_solve(const std::vector<double> &b) co
 // solver Rx = y
 std::vector<double> Cable::band_matrix::r_solve(const std::vector<double> &b) const
 {
-    ROS_ASSERT(this->dim() == (int)b.size() );
+    ROS_ASSERT(this->dim() == (int)b.size());
     std::vector<double> x(this->dim());
     int j_stop;
     double sum;
 
-    for(int i=this->dim()-1; i>=0; i--){
+    for (int i = this->dim() - 1; i >= 0; i--)
+    {
         sum = 0.0;
         j_stop = std::min(this->dim() - 1, i + this->num_upper());
 
-        for(int j=i+1; j<=j_stop; j++){
+        for (int j = i + 1; j <= j_stop; j++)
+        {
             sum += this->operator()(i, j) * x[j];
         }
         x[i] = (b[i] - sum) / this->operator()(i, i);
@@ -471,9 +491,10 @@ std::vector<double> Cable::band_matrix::r_solve(const std::vector<double> &b) co
 // solves Ax = b
 std::vector<double> Cable::band_matrix::lu_solve(const std::vector<double> &b, bool is_lu_decomposed)
 {
-    ROS_ASSERT(this->dim() == (int)b.size() );
+    ROS_ASSERT(this->dim() == (int)b.size());
     std::vector<double> x, y;
-    if( is_lu_decomposed == false){
+    if (is_lu_decomposed == false)
+    {
         this->lu_decompose();
     }
     y = this->l_solve(b);
@@ -485,12 +506,12 @@ std::vector<double> Cable::band_matrix::lu_solve(const std::vector<double> &b, b
 // Machine precision of a double, i.e. the successor of 1 is 1+eps
 double Cable::get_eps()
 {
-    //return std::numeric_limits<double>::epsilon();    // __DBL_EPSILON__
+    // return std::numeric_limits<double>::epsilon();    // __DBL_EPSILON__
     return 2.2204460492503131e-16;
 }
 
 // Solutions for a+b*x = 0
-std::vector<double> solve_linear(double a, double b)
+std::vector<double> Cable::solve_linear(double a, double b)
 {
     std::vector<double> x;
     if (b == 0.0)
@@ -511,33 +532,39 @@ std::vector<double> solve_linear(double a, double b)
     else
     {
         x.resize(1);
-        x[0] = -a/b;
+        x[0] = -a / b;
         return x;
     }
 }
 
 // solutions for a + b*x + c*x^2 = 0
-std::vector<double> solve_quadratic(double a, double b, double c,
-                                    int newton_iter=0)
+std::vector<double> Cable::solve_quadratic(double a, double b, double c,
+                                           int newton_iter = 0)
 {
-    if(c==0.0) {
-        return solve_linear(a,b);
+    if (c == 0.0)
+    {
+        return solve_linear(a, b);
     }
     // rescale so that we solve x^2 + 2p x + q = (x+p)^2 + q - p^2 = 0
-    double p=0.5*b/c;
-    double q=a/c;
-    double discr = p*p-q;
-    const double eps=0.5*Cable::get_eps();
-    double discr_err = (6.0*(p*p)+3.0*fabs(q)+fabs(discr))*eps;
+    double p = 0.5 * b / c;
+    double q = a / c;
+    double discr = p * p - q;
+    const double eps = 0.5 * Cable::get_eps();
+    double discr_err = (6.0 * (p * p) + 3.0 * fabs(q) + fabs(discr)) * eps;
 
-    std::vector<double> x;      // roots
-    if(fabs(discr)<=discr_err) {
+    std::vector<double> x; // roots
+    if (fabs(discr) <= discr_err)
+    {
         // discriminant is zero --> one root
         x.resize(1);
         x[0] = -p;
-    } else if(discr<0) {
+    }
+    else if (discr < 0)
+    {
         // no root
-    } else {
+    }
+    else
+    {
         // two roots
         x.resize(2);
         x[0] = -p - sqrt(discr);
@@ -545,13 +572,16 @@ std::vector<double> solve_quadratic(double a, double b, double c,
     }
 
     // improve solution via newton steps
-    for(size_t i=0; i<x.size(); i++) {
-        for(int k=0; k<newton_iter; k++) {
-            double f  = (c*x[i] + b)*x[i] + a;
-            double f1 = 2.0*c*x[i] + b;
+    for (size_t i = 0; i < x.size(); i++)
+    {
+        for (int k = 0; k < newton_iter; k++)
+        {
+            double f = (c * x[i] + b) * x[i] + a;
+            double f1 = 2.0 * c * x[i] + b;
             // only adjust if slope is large enough
-            if(fabs(f1)>1e-8) {
-                x[i] -= f/f1;
+            if (fabs(f1) > 1e-8)
+            {
+                x[i] -= f / f1;
             }
         }
     }
@@ -566,27 +596,29 @@ std::vector<double> solve_quadratic(double a, double b, double c,
 // see also
 //   gsl: gsl_poly_solve_cubic() in solve_cubic.c
 //   octave: roots.m - via eigenvalues of the Frobenius companion matrix
-std::vector<double> solve_cubic(double a, double b, double c, double d,
-                                int newton_iter)
+std::vector<double> Cable::solve_cubic(double a, double b, double c, double d,
+                                       int newton_iter = 0)
 {
-    if(d==0.0) {
-        return solve_quadratic(a,b,c,newton_iter);
+    if (d == 0.0)
+    {
+        return solve_quadratic(a, b, c, newton_iter);
     }
 
     // convert to normalised form: a + bx + cx^2 + x^3 = 0
-    if(d!=1.0) {
-        a/=d;
-        b/=d;
-        c/=d;
+    if (d != 1.0)
+    {
+        a /= d;
+        b /= d;
+        c /= d;
     }
 
     // convert to depressed cubic: z^3 - 3pz - 2q = 0
     // via substitution: z = x + c/3
-    std::vector<double> z;              // roots of the depressed cubic
-    double p = -(1.0/3.0)*b + (1.0/9.0)*(c*c);
-    double r = 2.0*(c*c)-9.0*b;
-    double q = -0.5*a - (1.0/54.0)*(c*r);
-    double discr=p*p*p-q*q;             // discriminant
+    std::vector<double> z; // roots of the depressed cubic
+    double p = -(1.0 / 3.0) * b + (1.0 / 9.0) * (c * c);
+    double r = 2.0 * (c * c) - 9.0 * b;
+    double q = -0.5 * a - (1.0 / 54.0) * (c * r);
+    double discr = p * p * p - q * q; // discriminant
     // calculating numerical round-off errors with assumptions:
     //  - each operation is precise but each intermediate result x
     //    when stored has max error of x*eps
@@ -595,67 +627,79 @@ std::vector<double> solve_cubic(double a, double b, double c, double d,
     //  - p_err << |p|, q_err << |q|, ... (this is violated in rare cases)
     // would be more elegant to use boost::numeric::interval<double>
     const double eps = Cable::get_eps();
-    double p_err = eps*((3.0/3.0)*fabs(b)+(4.0/9.0)*(c*c)+fabs(p));
-    double r_err = eps*(6.0*(c*c)+18.0*fabs(b)+fabs(r));
-    double q_err = 0.5*fabs(a)*eps + (1.0/54.0)*fabs(c)*(r_err+fabs(r)*3.0*eps)
-                   + fabs(q)*eps;
-    double discr_err = (p*p) * (3.0*p_err + fabs(p)*2.0*eps)
-                       + fabs(q) * (2.0*q_err + fabs(q)*eps) + fabs(discr)*eps;
+    double p_err = eps * ((3.0 / 3.0) * fabs(b) + (4.0 / 9.0) * (c * c) + fabs(p));
+    double r_err = eps * (6.0 * (c * c) + 18.0 * fabs(b) + fabs(r));
+    double q_err = 0.5 * fabs(a) * eps + (1.0 / 54.0) * fabs(c) * (r_err + fabs(r) * 3.0 * eps) + fabs(q) * eps;
+    double discr_err = (p * p) * (3.0 * p_err + fabs(p) * 2.0 * eps) + fabs(q) * (2.0 * q_err + fabs(q) * eps) + fabs(discr) * eps;
 
     // depending on the discriminant we get different solutions
-    if(fabs(discr)<=discr_err) {
+    if (fabs(discr) <= discr_err)
+    {
         // discriminant zero: one or two real roots
-        if(fabs(p)<=p_err) {
+        if (fabs(p) <= p_err)
+        {
             // p and q are zero: single root
             z.resize(1);
-            z[0] = 0.0;             // triple root
-        } else {
-            z.resize(2);
-            z[0] = 2.0*q/p;         // single root
-            z[1] = -0.5*z[0];       // double root
+            z[0] = 0.0; // triple root
         }
-    } else if(discr>0) {
+        else
+        {
+            z.resize(2);
+            z[0] = 2.0 * q / p; // single root
+            z[1] = -0.5 * z[0]; // double root
+        }
+    }
+    else if (discr > 0)
+    {
         // three real roots: via trigonometric solution
         z.resize(3);
-        double ac = (1.0/3.0) * acos( q/(p*sqrt(p)) );
-        double sq = 2.0*sqrt(p);
+        double ac = (1.0 / 3.0) * acos(q / (p * sqrt(p)));
+        double sq = 2.0 * sqrt(p);
         z[0] = sq * cos(ac);
-        z[1] = sq * cos(ac-2.0*M_PI/3.0);
-        z[2] = sq * cos(ac-4.0*M_PI/3.0);
-    } else if (discr<0.0) {
+        z[1] = sq * cos(ac - 2.0 * M_PI / 3.0);
+        z[2] = sq * cos(ac - 4.0 * M_PI / 3.0);
+    }
+    else if (discr < 0.0)
+    {
         // single real root: via Cardano's fromula
         z.resize(1);
         double sgnq = (q >= 0 ? 1 : -1);
         double basis = fabs(q) + sqrt(-discr);
-        double C = sgnq * pow(basis, 1.0/3.0); // c++11 has std::cbrt()
-        z[0] = C + p/C;
+        double C = sgnq * pow(basis, 1.0 / 3.0); // c++11 has std::cbrt()
+        z[0] = C + p / C;
     }
-    for(size_t i=0; i<z.size(); i++) {
+    for (size_t i = 0; i < z.size(); i++)
+    {
         // convert depressed cubic roots to original cubic: x = z - c/3
-        z[i] -= (1.0/3.0)*c;
+        z[i] -= (1.0 / 3.0) * c;
         // improve solution via newton steps
-        for(int k=0; k<newton_iter; k++) {
-            double f  = ((z[i] + c)*z[i] + b)*z[i] + a;
-            double f1 = (3.0*z[i] + 2.0*c)*z[i] + b;
+        for (int k = 0; k < newton_iter; k++)
+        {
+            double f = ((z[i] + c) * z[i] + b) * z[i] + a;
+            double f1 = (3.0 * z[i] + 2.0 * c) * z[i] + b;
             // only adjust if slope is large enough
-            if(fabs(f1)>1e-8) {
-                z[i] -= f/f1;
+            if (fabs(f1) > 1e-8)
+            {
+                z[i] -= f / f1;
             }
         }
     }
     // ensure if a=0 we get exactly x=0 as root
     // TODO: remove this fudge
-    if(a==0.0) {
-        ROS_ASSERT(z.size()>0);     // cubic should always have at least one root
-        double xmin=fabs(z[0]);
-        size_t imin=0;
-        for(size_t i=1; i<z.size(); i++) {
-            if(xmin>fabs(z[i])) {
-                xmin=fabs(z[i]);
-                imin=i;
+    if (a == 0.0)
+    {
+        ROS_ASSERT(z.size() > 0); // cubic should always have at least one root
+        double xmin = fabs(z[0]);
+        size_t imin = 0;
+        for (size_t i = 1; i < z.size(); i++)
+        {
+            if (xmin > fabs(z[i]))
+            {
+                xmin = fabs(z[i]);
+                imin = i;
             }
         }
-        z[imin]=0.0;        // replace the smallest absolute value with 0
+        z[imin] = 0.0; // replace the smallest absolute value with 0
     }
     std::sort(z.begin(), z.end());
     return z;

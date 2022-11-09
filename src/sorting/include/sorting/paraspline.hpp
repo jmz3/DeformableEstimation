@@ -43,12 +43,12 @@ namespace Cable
     public:
         paraspline();
         paraspline(const std::vector<double> &X, const std::vector<double> &Y,
-                   spline_type type = cubic,
-                   bool make_monotonic = false,
-                   bound_type left = second_order,
-                   double left_value = 0.0,
-                   bound_type right = second_order,
-                   double right_value = 0.0);
+                   spline_type type,
+                   bool make_monotonic,
+                   bound_type left,
+                   double left_value,
+                   bound_type right,
+                   double right_value);
 
         // modify boundary conditions: if called it must be before set_points()
         void set_boundary(bound_type left, double left_value,
@@ -122,6 +122,9 @@ namespace Cable
     };
     double get_eps();
 
+    std::vector<double> solve_linear(double a, double b);
+    std::vector<double> solve_quadratic(double a, double b, double c,
+                                    int newton_iter);
     std::vector<double> solve_cubic(double a, double b, double c, double d,
-                                    int newton_iter = 0);
+                                    int newton_iter);
 };
