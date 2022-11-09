@@ -5,7 +5,8 @@ Cable::paraspline::paraspline() : m_type(cubic), m_left(second_order), m_right(s
 
                                                      };
 
-Cable::paraspline::paraspline(const std::vector<double> &X, const std::vector<double> &Y,
+Cable::paraspline::paraspline(const std::vector<double> &X,
+                              const std::vector<double> &Y,
                               spline_type type = cubic,
                               bool make_monotonic = false,
                               bound_type left = second_order,
@@ -34,141 +35,126 @@ void Cable::paraspline::set_points(const std::vector<double> &x,
                                    const std::vector<double> &y,
                                    spline_type type = cubic)
 {
-    ROS_ASSERT(x.size() == y.size());
-    ROS_ASSERT(x.size() >= 3);
+    ROS_ASSERT(x.size()==y.size());
+    ROS_ASSERT(x.size()>=3);
+    // not-a-knot with 3 points has many solutions
+    if(m_left==not_a_knot || m_right==not_a_knot)
+        ROS_ASSERT(x.size()>=4);
+    m_type=type;
 
-    // If points are less than 3, there will be multiple solutions?
-    m_type = type;
-    m_x = x;
-    m_y = y;
-    int n = (int)x.size();
-
-    // Ensure the input independent variable to be monotonic
-    for (int i = 0; i < n - 1; i++)
-    {
-        ROS_ASSERT(m_x[i] < m_x[i + 1]);
+    m_x=x;
+    m_y=y;
+    int n = (int) x.size();
+    // check strict monotonicity of input vector x
+    for(int i=0; i<n-1; i++) {
+        ROS_ASSERT(m_x[i]<m_x[i+1]);
     }
 
-    switch (type)
-    {
-    case linear:
+
+    if(type==linear) {
+        // linear interpolation
         m_d.resize(n);
         m_c.resize(n);
         m_b.resize(n);
-
-        for (int i = 0; i < n - 1; i++)
-        {
-            m_d[i] = 0.0;
-            m_c[i] = 0.0;
-            m_b[i] = (m_y[i + 1] - m_y[i]) / (m_x[i + 1] - m_x[i]);
+        for(int i=0; i<n-1; i++) {
+            m_d[i]=0.0;
+            m_c[i]=0.0;
+            m_b[i]=(m_y[i+1]-m_y[i])/(m_x[i+1]-m_x[i]);
         }
         // ignore boundary conditions, set slope equal to the last segment
-        m_b[n - 1] = m_b[n - 2];
-        m_c[n - 1] = 0.0;
-        m_d[n - 1] = 0.0;
-        break;
-
-    case cubic:
+        m_b[n-1]=m_b[n-2];
+        m_c[n-1]=0.0;
+        m_d[n-1]=0.0;
+    } else if(type==cubic) {
         // classical cubic splines which are C^2 (twice cont differentiable)
         // this requires solving an equation system
 
         // setting up the matrix and right hand side of the equation system
         // for the parameters b[]
-        // conditional operator: expr ? true_return : false_return
-        int n_upper = (m_left == paraspline::not_a_knot) ? 2 : 1;
+        int n_upper = (m_left  == paraspline::not_a_knot) ? 2 : 1;
         int n_lower = (m_right == paraspline::not_a_knot) ? 2 : 1;
-
-        band_matrix A(n, n_upper, n_lower);
-        std::vector<double> rhs(n);
-        for (int i = 1; i < n - 1; i++)
-        {
-            A(i, i - 1) = 1.0 / 3.0 * (x[i] - x[i - 1]);
-            A(i, i) = 2.0 / 3.0 * (x[i + 1] - x[i - 1]);
-            A(i, i + 1) = 1.0 / 3.0 * (x[i + 1] - x[i]);
-
-            rhs[i] = (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
+        band_matrix A(n,n_upper,n_lower);
+        std::vector<double>  rhs(n);
+        for(int i=1; i<n-1; i++) {
+            A(i,i-1)=1.0/3.0*(x[i]-x[i-1]);
+            A(i,i)=2.0/3.0*(x[i+1]-x[i-1]);
+            A(i,i+1)=1.0/3.0*(x[i+1]-x[i]);
+            rhs[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1]);
         }
-
-        if (m_left == paraspline::second_order)
-        { // 2 * c[0] = f"(x0)
-            A(0, 0) = 2.0;
-            A(0, 1) = 0.0;
-            rhs[0] = m_left_value;
-        }
-        else if (m_left == paraspline::first_order)
-        {
-            // b[n-1] = f', needs to be re-expressed in terms of c:
-            // (c[n-2]+2c[n-1])(x[n-1]-x[n-2])
-            // = 3 (f' - (y[n-1]-y[n-2])/(x[n-1]-x[n-2]))
-            A(0, 0) = 2.0 * (x[1] - x[0]);
-            A(0, 1) = 1.0 * (x[1] - x[0]);
-            rhs[0] = 3.0 * ((y[1] - y[0]) / (x[1] - x[0]) - m_left_value);
-        }
-        else if (m_left == paraspline::not_a_knot)
-        {
+        // boundary conditions
+        if(m_left == paraspline::second_order) {
+            // 2*c[0] = f''
+            A(0,0)=2.0;
+            A(0,1)=0.0;
+            rhs[0]=m_left_value;
+        } else if(m_left == paraspline::first_order) {
+            // b[0] = f', needs to be re-expressed in terms of c:
+            // (2c[0]+c[1])(x[1]-x[0]) = 3 ((y[1]-y[0])/(x[1]-x[0]) - f')
+            A(0,0)=2.0*(x[1]-x[0]);
+            A(0,1)=1.0*(x[1]-x[0]);
+            rhs[0]=3.0*((y[1]-y[0])/(x[1]-x[0])-m_left_value);
+        } else if(m_left == paraspline::not_a_knot) {
             // f'''(x[1]) exists, i.e. d[0]=d[1], or re-expressed in c:
             // -h1*c[0] + (h0+h1)*c[1] - h0*c[2] = 0
-            A(0, 0) = -(x[2] - x[1]);
-            A(0, 1) = x[2] - x[0];
-            A(0, 2) = -(x[1] - x[0]);
+            A(0,0) = -(x[2]-x[1]);
+            A(0,1) = x[2]-x[0];
+            A(0,2) = -(x[1]-x[0]);
             rhs[0] = 0.0;
-        }
-        else
-        {
+        } else {
             ROS_ASSERT(false);
         }
-        if (m_right == paraspline::second_order)
-        {
-            A(n - 1, n - 2) = 2.0;
-            A(n - 1, n - 2) = 0.0;
-            rhs[n - 1] = m_right_value;
-        }
-        else if (m_right == paraspline::first_order)
-        {
+        if(m_right == paraspline::second_order) {
+            // 2*c[n-1] = f''
+            A(n-1,n-1)=2.0;
+            A(n-1,n-2)=0.0;
+            rhs[n-1]=m_right_value;
+        } else if(m_right == paraspline::first_order) {
             // b[n-1] = f', needs to be re-expressed in terms of c:
             // (c[n-2]+2c[n-1])(x[n-1]-x[n-2])
             // = 3 (f' - (y[n-1]-y[n-2])/(x[n-1]-x[n-2]))
-            A(n - 1, n - 1) = 2.0 * (x[n - 1] - x[n - 2]);
-            A(n - 1, n - 2) = 1.0 * (x[n - 1] - x[n - 2]);
-            rhs[n - 1] = 3.0 * (m_right_value - (y[n - 1] - y[n - 2]) / (x[n - 1] - x[n - 2]));
-        }
-        else if (m_right == paraspline::not_a_knot)
-        {
+            A(n-1,n-1)=2.0*(x[n-1]-x[n-2]);
+            A(n-1,n-2)=1.0*(x[n-1]-x[n-2]);
+            rhs[n-1]=3.0*(m_right_value-(y[n-1]-y[n-2])/(x[n-1]-x[n-2]));
+        } else if(m_right == paraspline::not_a_knot) {
             // f'''(x[n-2]) exists, i.e. d[n-3]=d[n-2], or re-expressed in c:
             // -h_{n-2}*c[n-3] + (h_{n-3}+h_{n-2})*c[n-2] - h_{n-3}*c[n-1] = 0
-            A(n - 1, n - 3) = -(x[n - 1] - x[n - 2]);
-            A(n - 1, n - 2) = x[n - 1] - x[n - 3];
-            A(n - 1, n - 1) = -(x[n - 2] - x[n - 3]);
+            A(n-1,n-3) = -(x[n-1]-x[n-2]);
+            A(n-1,n-2) = x[n-1]-x[n-3];
+            A(n-1,n-1) = -(x[n-2]-x[n-3]);
             rhs[0] = 0.0;
-        }
-        else
-        {
+        } else {
             ROS_ASSERT(false);
         }
-        // solve the equation system to obtain the parameters c[]
 
-        m_c = A.lu_solve(rhs);
+        // solve the equation system to obtain the parameters c[]
+        m_c=A.lu_solve(rhs);
 
         // calculate parameters b[] and d[] based on c[]
         m_d.resize(n);
         m_b.resize(n);
-        for (int i = 0; i < n - 1; i++)
-        {
-            m_d[i] = 1.0 / 3.0 * (m_c[i + 1] - m_c[i]) / (x[i + 1] - x[i]);
-            m_b[i] = (y[i + 1] - y[i]) / (x[i + 1] - x[i]) - 1.0 / 3.0 * (2.0 * m_c[i] + m_c[i + 1]) * (x[i + 1] - x[i]);
+        for(int i=0; i<n-1; i++) {
+            m_d[i]=1.0/3.0*(m_c[i+1]-m_c[i])/(x[i+1]-x[i]);
+            m_b[i]=(y[i+1]-y[i])/(x[i+1]-x[i])
+                   - 1.0/3.0*(2.0*m_c[i]+m_c[i+1])*(x[i+1]-x[i]);
         }
         // for the right extrapolation coefficients (zero cubic term)
         // f_{n-1}(x) = y_{n-1} + b*(x-x_{n-1}) + c*(x-x_{n-1})^2
-        double h = x[n - 1] - x[n - 2];
+        double h=x[n-1]-x[n-2];
         // m_c[n-1] is determined by the boundary condition
-        m_d[n - 1] = 0.0;
-        m_b[n - 1] = 3.0 * m_d[n - 2] * h * h + 2.0 * m_c[n - 2] * h + m_b[n - 2]; // = f'_{n-2}(x_{n-1})
-        if (m_right == first_order)
-            m_c[n - 1] = 0.0; // force linear extrapolation
-        break;
+        m_d[n-1]=0.0;
+        m_b[n-1]=3.0*m_d[n-2]*h*h+2.0*m_c[n-2]*h+m_b[n-2];   // = f'_{n-2}(x_{n-1})
+        if(m_right==first_order)
+            m_c[n-1]=0.0;   // force linear extrapolation
+
+    } 
+    else {
+        ROS_ASSERT(false);
     }
-    m_c0 = (m_left == first_order) ? 0.0 : m_c[0];
+
+    // for left extrapolation coefficients
+    m_c0 = (m_left==first_order) ? 0.0 : m_c[0];
 }
+
 
 size_t Cable::paraspline::find_closest(double x) const
 {

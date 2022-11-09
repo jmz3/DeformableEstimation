@@ -42,7 +42,8 @@ namespace Cable
 
     public:
         paraspline();
-        paraspline(const std::vector<double> &X, const std::vector<double> &Y,
+        paraspline(const std::vector<double> &X,
+                   const std::vector<double> &Y,
                    spline_type type,
                    bool make_monotonic,
                    bound_type left,
@@ -124,7 +125,7 @@ namespace Cable
 
     std::vector<double> solve_linear(double a, double b);
     std::vector<double> solve_quadratic(double a, double b, double c,
-                                    int newton_iter);
+                                        int newton_iter);
     std::vector<double> solve_cubic(double a, double b, double c, double d,
                                     int newton_iter);
 };
