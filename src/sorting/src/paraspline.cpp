@@ -229,4 +229,55 @@ double Cable::paraspline::deriv(int order, double x) const
             break;
         }
     }
+    else{
+        switch (order)
+        {
+        case 1:
+            interpol = ( 3.0*m_d[idx]*h + 2.0*m_c[idx])*h + m_b[idx];
+            break;
+        case 2:
+            interpol = 6.0*m_d[idx]*h + 2.0*m_c[idx];
+            break;
+
+        case 3:
+            interpol = 6.0 * m_d[idx];
+            break;
+        default:
+            interpol = 0.0;
+            break;
+        }
+    }
+    return interpol;
+}
+
+std::vector<double> Cable::paraspline::solve(double y, bool ignore_extrapolation) const{
+    std::vector<double> x;
+    std::vector<double> root;
+    const size_t n=m_x.size();
+
+    //left extrapolation
+    if(ignore_extrapolation==false){
+        root = Cable::solve_cubic(m_y[0] - y, m_b[0], m_c0, 0.0, 1);
+        for(size_t j=0; j<root.size(); j++){
+            if(root[j]<0.0){
+                x.push_back(m_x[0]+root[j]);
+            }
+        }
+    }
+
+    // brute force check if piecewise cubic has roots in their resp. segment
+    // TODO: make more efficient
+    for(size_t i=0; i<n-1; i++){
+        root = Cable::solve_cubic(m_y[i]-y, m_b[i], m_c[i], m_d[i],1);
+        for(size_t j=0; j<root.size(); j++){
+            double h = (i>0) ? (m_x[i] - m_x[i-1]) : 0.0;
+            double eps = Cable::get_eps()* 512.0 * std::min(h,1.0);
+            if( (-eps<=root[j]) && (root[j]<m_x[i+1]-m_x[i])){
+                double new_root = m_x[i] + root[j];
+                if(x.size()>0 && x.back() + eps > new_root){
+                    x.back() = new_root;
+                }
+            }
+        }
+    }    
 }

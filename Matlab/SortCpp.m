@@ -1,8 +1,8 @@
-clear sub_test
+clear sub_raw
 pause(1)
-sub_test = rossubscriber("/cpp_test","geometry_msgs/PoseArray");
+sub_raw = rossubscriber("/cpp_test","geometry_msgs/PoseArray");
 disp("Listening...");
-input = receive(sub_test,10);
+input = receive(sub_raw,10);
 for k = 1:size(input.Poses)
     poseMsg = input.Poses(k);
     p(k,1) = poseMsg.Position.X;

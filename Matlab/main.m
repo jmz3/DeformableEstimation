@@ -32,7 +32,7 @@ text(temp(:,1), temp(:,2),temp(:,3), [repmat('  ',size(temp,1),1), num2str((1:si
 while true
 
     DataVisualization
-    SortCpp
+    Sort
     %     MATLABROS
 end
 
