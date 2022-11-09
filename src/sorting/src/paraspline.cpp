@@ -32,7 +32,7 @@ void Cable::paraspline::set_boundary(bound_type left, double left_value,
 
 void Cable::paraspline::set_points(const std::vector<double> &x,
                                    const std::vector<double> &y,
-                                   spline_type type)
+                                   spline_type type = cubic)
 {
     ROS_ASSERT(x.size() == y.size());
     ROS_ASSERT(x.size() >= 3);
@@ -41,8 +41,6 @@ void Cable::paraspline::set_points(const std::vector<double> &x,
     m_type = type;
     m_x = x;
     m_y = y;
-    std::cout << "m_x.size() = " << m_x.size() << std::endl;
-    std::cout << "m_y.size() = " << m_y.size() << std::endl;
     int n = (int)x.size();
 
     // Ensure the input independent variable to be monotonic
@@ -102,9 +100,9 @@ void Cable::paraspline::set_points(const std::vector<double> &x,
             // b[n-1] = f', needs to be re-expressed in terms of c:
             // (c[n-2]+2c[n-1])(x[n-1]-x[n-2])
             // = 3 (f' - (y[n-1]-y[n-2])/(x[n-1]-x[n-2]))
-            A(n - 1, n - 1) = 2.0 * (x[n - 1] - x[n - 2]);
-            A(n - 1, n - 2) = 1.0 * (x[n - 1] - x[n - 2]);
-            rhs[n - 1] = 3.0 * (m_right_value - (y[n - 1] - y[n - 2]) / (x[n - 1] - x[n - 2]));
+            A(0, 0) = 2.0 * (x[1] - x[0]);
+            A(0, 1) = 1.0 * (x[1] - x[0]);
+            rhs[0] = 3.0 * ((y[1] - y[0]) / (x[1] - x[0]) - m_left_value);
         }
         else if (m_left == paraspline::not_a_knot)
         {
@@ -147,6 +145,26 @@ void Cable::paraspline::set_points(const std::vector<double> &x,
         {
             ROS_ASSERT(false);
         }
+        // solve the equation system to obtain the parameters c[]
+
+        m_c = A.lu_solve(rhs);
+
+        // calculate parameters b[] and d[] based on c[]
+        m_d.resize(n);
+        m_b.resize(n);
+        for (int i = 0; i < n - 1; i++)
+        {
+            m_d[i] = 1.0 / 3.0 * (m_c[i + 1] - m_c[i]) / (x[i + 1] - x[i]);
+            m_b[i] = (y[i + 1] - y[i]) / (x[i + 1] - x[i]) - 1.0 / 3.0 * (2.0 * m_c[i] + m_c[i + 1]) * (x[i + 1] - x[i]);
+        }
+        // for the right extrapolation coefficients (zero cubic term)
+        // f_{n-1}(x) = y_{n-1} + b*(x-x_{n-1}) + c*(x-x_{n-1})^2
+        double h = x[n - 1] - x[n - 2];
+        // m_c[n-1] is determined by the boundary condition
+        m_d[n - 1] = 0.0;
+        m_b[n - 1] = 3.0 * m_d[n - 2] * h * h + 2.0 * m_c[n - 2] * h + m_b[n - 2]; // = f'_{n-2}(x_{n-1})
+        if (m_right == first_order)
+            m_c[n - 1] = 0.0; // force linear extrapolation
         break;
     }
     m_c0 = (m_left == first_order) ? 0.0 : m_c[0];
@@ -175,28 +193,27 @@ double Cable::paraspline::operator()(double x) const
     if (x < m_x[0])
     {
         // extrapolation to the left
-        ROS_INFO("So far so good if 1");
+
         interpol = (m_c0 * h + m_b[0]) * h + m_y[0];
     }
     else if (x > m_x[n - 1])
     {
         // extrapolation to the right
-        ROS_INFO("So far so good else if 1");
+
         interpol = (m_c[n - 1] * h + m_b[n - 1]) * h + m_y[n - 1];
     }
     else
     {
         // interpolation
-        ROS_INFO("So far so good else 1");
-        std::cout << "idx: " << idx << std::endl;
-        std::cout << "h: " << h << std::endl;
-        std::cout << "m_d[idx]: " << m_d[idx] << std::endl;
-        std::cout << "m_c[idx]: " << m_c[idx] << std::endl;
-        std::cout << "m_b[idx]: " << m_b[idx] << std::endl;
+
+        // std::cout << "idx: " << idx << std::endl;
+        // std::cout << "h: " << h << std::endl;
+        // std::cout << "m_d[idx]: " << m_d[idx] << std::endl;
+        // std::cout << "m_c[idx]: " << m_c[idx] << std::endl;
+        // std::cout << "m_b[idx]: " << m_b[idx] << std::endl;
 
         interpol = ((m_d[idx] * h + m_c[idx]) * h + m_b[idx]) * h + m_y[idx];
     }
-    ROS_INFO("So far so good");
     return interpol;
 }
 

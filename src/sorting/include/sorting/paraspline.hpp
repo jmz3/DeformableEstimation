@@ -57,7 +57,7 @@ namespace Cable
         // set all data points (cubic_spline=false means linear interpolation)
         void set_points(const std::vector<double> &x,
                         const std::vector<double> &y,
-                        spline_type type = cubic);
+                        spline_type type);
 
         // adjust coefficients so that the spline becomes piecewise monotonic
         // where possible
