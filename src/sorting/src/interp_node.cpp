@@ -22,23 +22,26 @@ void printv(std::vector<double> &a)
 
 void NDI_point_callback(const geometry_msgs::PoseArray &p)
 {
+    std::cout<<"get in callback\n";
     PointSet.clear();
     startP.clear();
     std::vector<double> temp; // Temporary point tuple of (x,y,z)
     //------------------------------------------------------------------------------
     // extract the coordinates form the pose array
+    // std::cout<<"arrive here\n";
     for (int i = 0; i < p.poses.size(); i++)
     {
+        // std::cout<<"arrive here\n";
         temp.push_back(p.poses[i].position.x);
         temp.push_back(p.poses[i].position.y);
         temp.push_back(p.poses[i].position.z);
-        if (i == 0)
+        if (i == p.poses.size()-1)
         {
             startP = temp;
         }
         else
         {
-            // std::cout<<"arrive here\n";
+            std::cout<<"length is :"<<i<<std::endl;
             PointSet.push_back(temp);
         }
         temp.clear();
@@ -58,6 +61,14 @@ void NDI_vector_callback(const geometry_msgs::Pose &v)
     startN.push_back(v.position.z);
 };
 
+void set_direction()
+{
+    startN.clear();
+    startN.push_back(377.1 - 382.0 );
+    startN.push_back(-1.8 - (-46.1));
+    startN.push_back(-1090.6 -(-1070.6));
+};
+
 int main(int argc, char **argv)
 {
     // Initialize ROS stuff
@@ -73,14 +84,18 @@ int main(int argc, char **argv)
 
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
-
+    NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 1, NDI_point_callback);
+    sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
+    set_direction();
     ros::Rate rate(50);
-
+    // NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 100, NDI_point_callback);
     while (nh.ok())
     {
-
-        NDI_point_sub_ = nh.subscribe("/Raw_data", 10, NDI_point_callback);
-        NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
+        // std::cout<<"arrive sub\n";
+        
+        
+        // NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
+        
 
         //------------------------------------------------------------------------------
         // sort the points here
@@ -105,7 +120,7 @@ int main(int argc, char **argv)
                     //           << output.poses[i].position.y << "\n"
                     //           << output.poses[i].position.z << std::endl;
                 }
-                sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
+                
                 sorted_pub_.publish(output);
 
                 // // Define the initial point and its orientation

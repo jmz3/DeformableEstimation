@@ -174,7 +174,8 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
 
         // Normalize ( Scale to 0 - 1 )
         fscale(Normal, 1.0 / fnorm(Normal));
-        ROS_ASSERT(fnorm(Normal) < 1 + 1e-6); // Ensure the normal is unit vector
+        ROS_INFO_STREAM("Norm of Normal is"<<fnorm(Normal));
+        if(fnorm(Normal) - 1 < 1e-6) break; // Ensure the normal is unit vector
 
         rot_angle = fangle(Direction[i], PositionalDiff);
 
