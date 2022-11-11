@@ -85,17 +85,14 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
     NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 1, NDI_point_callback);
+    NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
-    set_direction();
+    // set_direction();
     ros::Rate rate(50);
     // NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 100, NDI_point_callback);
     while (nh.ok())
     {
         // std::cout<<"arrive sub\n";
-        
-        
-        // NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
-        
 
         //------------------------------------------------------------------------------
         // sort the points here

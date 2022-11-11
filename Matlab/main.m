@@ -1,6 +1,12 @@
 clear;
 clc;
-rosinit
+posearray = rosmessage(pub_raw);
+for k = 1:size(point_rand,1)
+    posearray.Poses(k) = rosmessage("geometry_msgs/Pose");
+    posearray.Poses(k).Position.X = point_rand(k,1);
+    posearray.Poses(k).Position.Y = point_rand(k,2);
+    posearray.Poses(k).Position.Z = point_rand(k,3);
+end
 pub_raw = rospublisher("Raw_data","geometry_msgs/PoseArray");
 pub_fit = rospublisher("Fit_data","geometry_msgs/PoseArray");
 sub_raw = rossubscriber("/Raw_data","geometry_msgs/PoseArray");

@@ -21,9 +21,9 @@ for i=1:1:size(p,1)-1
     for j=i+1:1:size(p,1)
         P2 = p(j,:)- p(i,:);
         angle = atan2(norm(cross(P1,P2)),dot(P1,P2));
-        mean =  2 * dL * cos(angle)/( pi - 2 * angle );
+        expect_value =  2 * dL * cos(angle)/( pi - 2 * angle );
         if angle < pi
-            possibility(j) = (1/(sigma*sqrt(2*pi)))*exp(-0.5*((norm(P2)-mean)/sigma)^2);
+            possibility(j) = (1/(sigma*sqrt(2*pi)))*exp(-0.5*((norm(P2)-expect_value)/sigma)^2);
         else
             possibility(j) = 0;
         end

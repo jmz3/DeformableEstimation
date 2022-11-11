@@ -1,0 +1,41 @@
+rosinit
+node_pub = robotics.ros.Node('node_pub');
+
+% Fake Data here 
+point = [
+    350.51 -100.90 -1289.20;
+    177.52 -0.34 -1326.52;
+    18.38 12.51 -1456.44;
+    -0.71 -119.10 -1600.27;
+    9.38 -272.83 -1548.32;
+    -76.45 -351.36 -1388.70;
+    -203.97 -363.55 -1239.21;
+    -366.53 -339.60 -1101.56];
+start_point = [445.28 -257.41 -1221.45];
+n = [120.86 14.73 -1381.89] - [ 109.28 57.02 -1406.65];
+
+pub_fake_data = rospublisher("/NDI/measured_cp_array","geometry_msgs/PoseArray");
+posearray = rosmessage(pub_fake_data);
+for k = 1:size(point,1)
+    posearray.Poses(k) = rosmessage("geometry_msgs/Pose");
+    posearray.Poses(k).Position.X = point(k,1);
+    posearray.Poses(k).Position.Y = point(k,2);
+    posearray.Poses(k).Position.Z = point(k,3);
+end
+
+while true
+% generate random rotation
+center = mean(point);
+point_c = point - repmat(center, size(point,1), 1);
+q_rand = quaternion([ 1.0 rand(1,3)]);
+RM = rotmat(q_rand,'frame');
+point_c = (RM*point_c')';
+plot3( point_c(:,1) , point_c(:,2) , point_c(:,3))
+hold on
+
+end
+
+% while true
+% send(pub_fake_data,posearray);
+% disp('sending')
+% end
