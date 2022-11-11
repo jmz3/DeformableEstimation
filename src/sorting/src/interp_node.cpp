@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
     // set_direction();
     ros::Rate rate(50);
-    // NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 100, NDI_point_callback);
+    
     while (nh.ok())
     {
         // std::cout<<"arrive sub\n";

@@ -21,7 +21,7 @@ posearray = rosmessage(pub_fake_data);
 normalMsg = rosmessage(pub_fake_normal);
 
 figure(1)
-set(gcf,'Position',[300 300 1000 900])
+set(g
 
 iter_count = 0;
 while true

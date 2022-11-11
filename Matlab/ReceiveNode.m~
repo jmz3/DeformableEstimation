@@ -3,15 +3,13 @@ rosinit
 node_sub = robotics.ros.Node('Node_sub');
 start_point = [445.28 -257.41 -1221.45];
 % subscribe the sorted and interpolated data here
-sub_test = rossubscriber("/cpp_test","geometry_msgs/PoseArray");
+sub_test = rossubscriber("/cpp","geometry_msgs/PoseArray");
 figure(1)
 set(gcf,'Position',[1300 300 1000 900])
 
 while true
 input = receive(sub_test,10);
-count = size(input.Poses,1)
-p = zeros(count,3);
-for k = 1:count
+for k = 1:size(input.Poses)
     poseMsg = input.Poses(k);
     p(k,1) = poseMsg.Position.X;
     p(k,2) = poseMsg.Position.Y;
