@@ -546,7 +546,7 @@ std::vector<double> Cable::solve_quadratic(double a, double b, double c,
 {
     if (c == 0.0)
     {
-        return solve_linear(a, b);
+        return solve_linear(a, b); 
     }
     // rescale so that we solve x^2 + 2p x + q = (x+p)^2 + q - p^2 = 0
     double p = 0.5 * b / c;

@@ -1,7 +1,7 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseArray.h>
-#include <sorting/sort.hpp>
-#include <sorting/paraspline.hpp>
+#include <interp_cable/sort.hpp>
+#include <interp_cable/paraspline.hpp>
 
 std::vector<std::vector<double>> PointSet;
 std::vector<double> startN; // Known normal vector for the starting
