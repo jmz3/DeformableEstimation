@@ -9,7 +9,7 @@ set(gcf,'Position',[1300 300 1000 900])
 
 while true
 input = receive(sub_test,10);
-count = size(input.Poses,1)
+count = size(input.Poses,1);
 p = zeros(count,3);
 for k = 1:count
     poseMsg = input.Poses(k);

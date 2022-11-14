@@ -1,4 +1,4 @@
-#include <sorting/utilities.hpp>
+#include <interp_cable/utilities.hpp>
 
 vector<double> linspace(double start, double end, int n) {
     vector<double> result;

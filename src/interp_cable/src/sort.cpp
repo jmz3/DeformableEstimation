@@ -3,10 +3,15 @@
 #include <algorithm>
 #include <numeric>
 #include <cmath>
-#include <sorting/sort.hpp>
+#include <interp_cable/sort.hpp>
 
 Cable::Sort::Sort(double theta_max, double theta_min, double dL, double sigma,
-                  std::vector<double> StartP, std::vector<double> StartN) : theta_max(theta_max), theta_min(theta_min), dL(dL), sigma(sigma), StartP(StartP), StartN(StartN){};
+                  std::vector<double> StartP, std::vector<double> StartN) : theta_max(theta_max), theta_min(theta_min), dL(dL), sigma(sigma), StartP(StartP), StartN(StartN)
+{
+    // Size check
+    ROS_ASSERT(StartP.size() == 3);
+    ROS_ASSERT(StartN.size() == 3);
+};
 
 Cable::Sort::~Sort(){};
 
@@ -119,8 +124,9 @@ void Cable::Sort::init(std::vector<std::vector<double>> &ps)
 
 void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
 {
-
+    ROS_INFO_STREAM("point cloud size before init is: " << ps.size());
     init(ps);
+    ROS_INFO_STREAM("point cloud size after init is: " << ps.size());
     // i < size-1 because
     // there's no need to find the next point for the last one
     for (int i = 0; i < ps.size() - 1; i++)
@@ -174,8 +180,8 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
 
         // Normalize ( Scale to 0 - 1 )
         fscale(Normal, 1.0 / fnorm(Normal));
-        ROS_INFO_STREAM("Norm of Normal is"<<fnorm(Normal));
-        if(fnorm(Normal) - 1 < 1e-6) break; // Ensure the normal is unit vector
+        // ROS_INFO_STREAM("Norm of Normal is"<<fnorm(Normal));
+        ROS_ASSERT(fnorm(Normal) - 1 < 1e-6); // Ensure the normal is unit vector
 
         rot_angle = fangle(Direction[i], PositionalDiff);
 
@@ -183,5 +189,6 @@ void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
 
         Direction.push_back(direction_rot);
     }
+    ROS_INFO_STREAM("point cloud size after sort is: " << ps.size());
     ROS_INFO("Sort Complete!");
 };

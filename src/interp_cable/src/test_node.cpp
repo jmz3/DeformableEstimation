@@ -1,5 +1,6 @@
 #include <interp_cable/utilities.hpp>
 #include <interp_cable/paraspline.hpp>
+#include <interp_cable/matplotlibcpp.h>
 
 int main()
 {
