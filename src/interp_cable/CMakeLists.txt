@@ -15,8 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
-
+find_package(PythonLibs REQUIRED)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
@@ -118,6 +117,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  ${PYTHON_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -141,6 +141,7 @@ add_library(utilities
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(interp_node src/interp_node.cpp)
 add_executable(test_node src/test_node.cpp)
+add_executable(interp_w_plot_node src/interp_w_plot_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -167,11 +168,18 @@ target_link_libraries(utilities
 )
 target_link_libraries(test_node
   ${catkin_LIBRARIES}
+  ${PYTHON_LIBRARIES}
   utilities
   paraspline
 )
 target_link_libraries(interp_node
   ${catkin_LIBRARIES}
+  sort
+  paraspline
+)
+target_link_libraries(interp_w_plot_node
+  ${catkin_LIBRARIES}
+  ${PYTHON_LIBRARIES}
   sort
   paraspline
 )

@@ -119,6 +119,10 @@ int main(int argc, char **argv)
                 }
                 
                 sorted_pub_.publish(output);
+
+                // Interpolation here
+                // To Do:
+
             }
         }
         PointSet.clear();

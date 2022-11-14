@@ -2,6 +2,9 @@
 #include <geometry_msgs/PoseArray.h>
 #include <interp_cable/sort.hpp>
 #include <interp_cable/paraspline.hpp>
+#include <interp_cable/matplotlibcpp.h>
+
+namespace plt = matplotlibcpp;
 
 std::vector<std::vector<double>> PointSet;
 std::vector<double> startN; // Known normal vector for the starting
@@ -72,6 +75,7 @@ void set_direction()
 int main(int argc, char **argv)
 {
     // Initialize ROS stuff
+    //------------------------------------------------------------------------------
     ros::init(argc, argv, "Sorting");
     ros::NodeHandle nh;
     ros::Subscriber NDI_point_sub_;
@@ -79,8 +83,13 @@ int main(int argc, char **argv)
     ros::Publisher sorted_pub_;
 
     // get parameters
+    //------------------------------------------------------------------------------
     // if(nh.getParam(/theta_max, theta_max)){
     // }
+
+    // Initialize object to plot
+    //------------------------------------------------------------------------------
+    std::vector<double> plot_x, plot_y, plot_z;
 
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
@@ -89,7 +98,7 @@ int main(int argc, char **argv)
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
     // set_direction();
     ros::Rate rate(50);
-    
+    plt::figure();
     while (nh.ok())
     {
         // std::cout<<"arrive sub\n";
@@ -119,14 +128,28 @@ int main(int argc, char **argv)
                 }
                 
                 sorted_pub_.publish(output);
+
+
+
+                // Plot Here:
+                for(int i = 0; i < PointSet.size(); i++){
+                    plot_x.push_back(PointSet[i][0]);
+                    plot_y.push_back(PointSet[i][1]);
+                    plot_z.push_back(PointSet[i][2]);
+                }
+
+                plt::plot3(plot_x,plot_y,plot_z);
+                plt::show();
+                plt::pause(0.1);
+                plt::close();
             }
         }
         PointSet.clear();
         startP.clear();
-
+        
         ros::spinOnce();
         rate.sleep();
     }
-
+    
     return 0;
 };
