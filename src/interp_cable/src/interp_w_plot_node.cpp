@@ -98,7 +98,7 @@ int main(int argc, char **argv)
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
     // set_direction();
     ros::Rate rate(50);
-    plt::figure();
+    // plt::figure();
     while (nh.ok())
     {
         // std::cout<<"arrive sub\n";
@@ -137,11 +137,16 @@ int main(int argc, char **argv)
                     plot_y.push_back(PointSet[i][1]);
                     plot_z.push_back(PointSet[i][2]);
                 }
+                plt::clf();
+                plt::plot(plot_x,plot_y);
+                // plt::scatter(plot_x,plot_y,plot_z);
+                // plt::show();
+                plt::pause(0.01);
 
-                plt::plot3(plot_x,plot_y,plot_z);
-                plt::show();
-                plt::pause(0.1);
-                plt::close();
+                plot_x.clear();
+                plot_y.clear();
+                plot_z.clear();
+                // plt::close();
             }
         }
         PointSet.clear();
