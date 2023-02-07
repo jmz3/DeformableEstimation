@@ -131,14 +131,16 @@ int main(int argc, char **argv)
 
 
 
-                // Plot Here:
+                ////////////////////////////////////////////////////////////////////////////
+                /// Plot Using Matplotlib-cpp Bridge////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////
                 for(int i = 0; i < PointSet.size(); i++){
                     plot_x.push_back(PointSet[i][0]);
                     plot_y.push_back(PointSet[i][1]);
                     plot_z.push_back(PointSet[i][2]);
                 }
                 plt::clf();
-                plt::plot(plot_x,plot_y);
+                plt::plot(plot_x,plot_y); // 2D plot animation works fine
                 // plt::scatter(plot_x,plot_y,plot_z);
                 // plt::show();
                 plt::pause(0.01);
@@ -147,6 +149,17 @@ int main(int argc, char **argv)
                 plot_y.clear();
                 plot_z.clear();
                 // plt::close();
+                ////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////
+
+
+                ////////////////////////////////////////////////////////////////////////////
+                ///////////// Perform spline interpolation//////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////
+                Cable::paraspline spline;
+                spline.set_boundary(Cable::paraspline::bound_type::first_order, 0.0,
+                                    Cable::paraspline::bound_type::first_order, 0.0);,
+
             }
         }
         PointSet.clear();
