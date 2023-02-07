@@ -180,6 +180,7 @@ target_link_libraries(interp_node
 target_link_libraries(interp_w_plot_node
   ${catkin_LIBRARIES}
   ${PYTHON_LIBRARIES}
+  utilities
   sort
   paraspline
 )

@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseArray.h>
 #include <interp_cable/sort.hpp>
+
+#include <interp_cable/utilities.hpp>
 #include <interp_cable/paraspline.hpp>
 #include <interp_cable/matplotlibcpp.h>
 
@@ -38,7 +40,7 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
         temp.push_back(p.poses[i].position.x);
         temp.push_back(p.poses[i].position.y);
         temp.push_back(p.poses[i].position.z);
-        if (i == 0 )
+        if (i == 0)
         {
             startP = temp;
         }
@@ -67,9 +69,9 @@ void NDI_vector_callback(const geometry_msgs::Pose &v)
 void set_direction()
 {
     startN.clear();
-    startN.push_back(377.1 - 382.0 );
+    startN.push_back(377.1 - 382.0);
     startN.push_back(-1.8 - (-46.1));
-    startN.push_back(-1090.6 -(-1070.6));
+    startN.push_back(-1090.6 - (-1070.6));
 };
 
 int main(int argc, char **argv)
@@ -126,48 +128,77 @@ int main(int argc, char **argv)
                     //           << output.poses[i].position.y << "\n"
                     //           << output.poses[i].position.z << std::endl;
                 }
-                
+
                 sorted_pub_.publish(output);
 
-
-
                 ////////////////////////////////////////////////////////////////////////////
-                /// Plot Using Matplotlib-cpp Bridge////////////////////////////////////////
+                ///////// Plot Using Matplotlib-cpp Bridge//////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
-                for(int i = 0; i < PointSet.size(); i++){
+                for (int i = 0; i < PointSet.size(); i++)
+                {
                     plot_x.push_back(PointSet[i][0]);
                     plot_y.push_back(PointSet[i][1]);
                     plot_z.push_back(PointSet[i][2]);
                 }
-                plt::clf();
-                plt::plot(plot_x,plot_y); // 2D plot animation works fine
-                // plt::scatter(plot_x,plot_y,plot_z);
-                // plt::show();
-                plt::pause(0.01);
 
-                plot_x.clear();
-                plot_y.clear();
-                plot_z.clear();
                 // plt::close();
                 ////////////////////////////////////////////////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
 
-
                 ////////////////////////////////////////////////////////////////////////////
                 ///////////// Perform spline interpolation//////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
-                Cable::paraspline spline;
-                spline.set_boundary(Cable::paraspline::bound_type::first_order, 0.0,
-                                    Cable::paraspline::bound_type::first_order, 0.0);,
+                std::vector<std::vector<double>> PlotSet;
+                auto interp_space = linspace(0.0, 1.0, plot_x.size());
+                std::vector<double> interp_obj;
+                for (int i = 0; i < 3; i++)
+                {
+                    Cable::paraspline spline;
+                    spline.set_boundary(Cable::paraspline::bound_type::first_order, 0.0,
+                                        Cable::paraspline::bound_type::first_order, 0.0);
 
+
+                    if( i == 0 ){
+                        interp_obj = plot_x;
+                    }
+                    else if( i == 1 ){
+                        interp_obj = plot_y;
+                    }
+                    else if( i == 2 ){
+                        interp_obj = plot_z;
+                    }
+                   
+                    spline.set_points(interp_space, plot_x, Cable::paraspline::cubic);
+
+                    auto fine_space = linspace(interp_obj[0], interp_obj[plot_x.size() - 1], 100);
+                    plot_x.clear();
+                    plot_y.clear();
+
+                    for (int i = 0; i < 100; i++)
+                    {
+                        std::cout << fine_space[i] << std::endl;
+
+                        plot_x.push_back(spline(fine_space[i]));
+                    }
+                    plt::clf();
+                    plt::plot(fine_space, plot_x); // 2D plot animation works fine
+                    // plt::scatter(plot_x,plot_y,plot_z);
+                    // plt::show();
+                    plt::pause(0.01);
+                    spline.~paraspline();
+                }
+
+                plot_x.clear();
+                plot_y.clear();
+                plot_z.clear();
             }
         }
         PointSet.clear();
         startP.clear();
-        
+
         ros::spinOnce();
         rate.sleep();
     }
-    
+
     return 0;
 };

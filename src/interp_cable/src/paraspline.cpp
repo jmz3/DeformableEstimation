@@ -21,6 +21,8 @@ Cable::paraspline::paraspline(const std::vector<double> &X,
     this->set_points(X, Y, m_type);
 };
 
+Cable::paraspline::~paraspline(){};
+
 void Cable::paraspline::set_boundary(bound_type left, double left_value,
                                      bound_type right, double right_value)
 {

@@ -50,7 +50,7 @@ namespace Cable
                    double left_value,
                    bound_type right,
                    double right_value);
-
+        ~paraspline();
         // modify boundary conditions: if called it must be before set_points()
         void set_boundary(bound_type left, double left_value,
                           bound_type right, double right_value);
@@ -88,6 +88,7 @@ namespace Cable
             ROS_ASSERT(!m_x.empty());
             return m_x.back();
         }
+
     };
 
     class band_matrix
