@@ -151,43 +151,50 @@ int main(int argc, char **argv)
                 std::vector<std::vector<double>> PlotSet;
                 auto interp_space = linspace(0.0, 1.0, plot_x.size());
                 std::vector<double> interp_obj;
+                std::vector<double> interp_plot;
+
+                Cable::paraspline spline;
                 for (int i = 0; i < 3; i++)
                 {
-                    Cable::paraspline spline;
+
                     spline.set_boundary(Cable::paraspline::bound_type::first_order, 0.0,
                                         Cable::paraspline::bound_type::first_order, 0.0);
 
-
-                    if( i == 0 ){
+                    if (i == 0)
+                    {
                         interp_obj = plot_x;
                     }
-                    else if( i == 1 ){
+                    else if (i == 1)
+                    {
                         interp_obj = plot_y;
                     }
-                    else if( i == 2 ){
+                    else if (i == 2)
+                    {
                         interp_obj = plot_z;
                     }
-                   
-                    spline.set_points(interp_space, plot_x, Cable::paraspline::cubic);
+
+                    spline.set_points(interp_space, interp_obj, Cable::paraspline::cubic);
 
                     auto fine_space = linspace(interp_obj[0], interp_obj[plot_x.size() - 1], 100);
-                    plot_x.clear();
-                    plot_y.clear();
-
                     for (int i = 0; i < 100; i++)
                     {
                         std::cout << fine_space[i] << std::endl;
 
-                        plot_x.push_back(spline(fine_space[i]));
+                        interp_plot.push_back(spline(fine_space[i]));
                     }
-                    plt::clf();
-                    plt::plot(fine_space, plot_x); // 2D plot animation works fine
-                    // plt::scatter(plot_x,plot_y,plot_z);
-                    // plt::show();
-                    plt::pause(0.01);
-                    spline.~paraspline();
-                }
 
+                    // spline.~paraspline();
+                    for(int j = 0 ; j < interp_plot.size(); j++){
+                        PlotSet[i].push_back(interp_obj[j]);
+                    }
+                    interp_obj.clear();
+                    interp_plot.clear();
+                }
+                plt::clf();
+                plt::plot(PlotSet[0], PlotSet[1]); // 2D plot animation works fine
+                // plt::scatter(plot_x,plot_y,plot_z);
+                // plt::show();
+                plt::pause(0.005);
                 plot_x.clear();
                 plot_y.clear();
                 plot_z.clear();
