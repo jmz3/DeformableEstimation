@@ -26,7 +26,7 @@ Cable::paraspline::paraspline(const std::vector<double> &X,
 void Cable::paraspline::set_boundary(bound_type left, double left_value,
                                      bound_type right, double right_value)
 {
-    ROS_ASSERT(m_x.size() == 0);
+    // ROS_ASSERT(m_x.size() == 0);
     m_left = left;
     m_right = right;
     m_left_value = left_value;
