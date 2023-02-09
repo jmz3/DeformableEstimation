@@ -139,7 +139,6 @@ int main(int argc, char **argv)
                 std::vector<std::vector<double>> PlotSet;
                 auto interp_space = linspace(0.0, 1.0, plot_x.size());
                 std::vector<double> interp_obj;
-                std::vector<double> interp_plot;
 
                 Cable::paraspline *spline;
                 for (int i = 0; i < 3; i++)
@@ -166,16 +165,16 @@ int main(int argc, char **argv)
                     spline->set_points(interp_space, interp_obj, Cable::paraspline::cubic);
 
                     auto fine_space = linspace(0, 1, 100);
+                    interp_obj.clear();
 
                     for (int j = 0; j < fine_space.size(); j++)
                     {
-                        interp_plot.push_back(spline->operator()(fine_space[j]));
+                        interp_obj.push_back(spline->operator()(fine_space[j]));
                     }
 
-                    PlotSet.push_back(interp_plot);
+                    PlotSet.push_back(interp_obj);
 
                     interp_obj.clear();
-                    interp_plot.clear();
                     delete spline;
                 }
 
