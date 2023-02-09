@@ -1,6 +1,8 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseArray.h>
 #include <interp_cable/sort.hpp>
+
+#include <interp_cable/utilities.hpp>
 #include <interp_cable/paraspline.hpp>
 
 std::vector<std::vector<double>> PointSet;
@@ -35,7 +37,7 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
         temp.push_back(p.poses[i].position.x);
         temp.push_back(p.poses[i].position.y);
         temp.push_back(p.poses[i].position.z);
-        if (i == 0 )
+        if (i == 0)
         {
             startP = temp;
         }
@@ -64,14 +66,15 @@ void NDI_vector_callback(const geometry_msgs::Pose &v)
 void set_direction()
 {
     startN.clear();
-    startN.push_back(377.1 - 382.0 );
+    startN.push_back(377.1 - 382.0);
     startN.push_back(-1.8 - (-46.1));
-    startN.push_back(-1090.6 -(-1070.6));
+    startN.push_back(-1090.6 - (-1070.6));
 };
 
 int main(int argc, char **argv)
 {
     // Initialize ROS stuff
+    //------------------------------------------------------------------------------
     ros::init(argc, argv, "Sorting");
     ros::NodeHandle nh;
     ros::Subscriber NDI_point_sub_;
@@ -79,8 +82,13 @@ int main(int argc, char **argv)
     ros::Publisher sorted_pub_;
 
     // get parameters
+    //------------------------------------------------------------------------------
     // if(nh.getParam(/theta_max, theta_max)){
     // }
+
+    // Initialize object to plot
+    //------------------------------------------------------------------------------
+    std::vector<double> plot_x, plot_y, plot_z;
 
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
@@ -89,11 +97,9 @@ int main(int argc, char **argv)
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
     // set_direction();
     ros::Rate rate(50);
-    
+    // std::cout<<"arrive sub\n";
     while (nh.ok())
     {
-        // std::cout<<"arrive sub\n";
-
         //------------------------------------------------------------------------------
         // sort the points here
         if (NDI_point_sub_.getNumPublishers() != 0)
@@ -117,12 +123,65 @@ int main(int argc, char **argv)
                     //           << output.poses[i].position.y << "\n"
                     //           << output.poses[i].position.z << std::endl;
                 }
-                
+
                 sorted_pub_.publish(output);
 
-                // Interpolation here
-                // To Do:
+                for (int i = 0; i < PointSet.size(); i++)
+                {
+                    plot_x.push_back(PointSet[i][0]);
+                    plot_y.push_back(PointSet[i][1]);
+                    plot_z.push_back(PointSet[i][2]);
+                }
 
+                ////////////////////////////////////////////////////////////////////////////
+                ///////////// Perform spline interpolation//////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////
+                std::vector<std::vector<double>> PlotSet;
+                auto interp_space = linspace(0.0, 1.0, plot_x.size());
+                std::vector<double> interp_obj;
+                std::vector<double> interp_plot;
+
+                Cable::paraspline *spline;
+                for (int i = 0; i < 3; i++)
+                {
+                    spline = new Cable::paraspline;
+                    // ROS_INFO("Good 1");
+                    spline->set_boundary(Cable::paraspline::bound_type::first_order, 0.0,
+                                         Cable::paraspline::bound_type::first_order, 0.0);
+
+                    if (i == 0)
+                    {
+                        interp_obj = plot_x;
+                    }
+                    else if (i == 1)
+                    {
+                        interp_obj = plot_y;
+                    }
+                    else if (i == 2)
+                    {
+                        interp_obj = plot_z;
+                    }
+                    // ROS_INFO_STREAM("the length of the interpolation object is " << interp_obj.size());
+
+                    spline->set_points(interp_space, interp_obj, Cable::paraspline::cubic);
+
+                    auto fine_space = linspace(0, 1, 100);
+
+                    for (int j = 0; j < fine_space.size(); j++)
+                    {
+                        interp_plot.push_back(spline->operator()(fine_space[j]));
+                    }
+
+                    PlotSet.push_back(interp_plot);
+
+                    interp_obj.clear();
+                    interp_plot.clear();
+                    delete spline;
+                }
+
+                plot_x.clear();
+                plot_y.clear();
+                plot_z.clear();
             }
         }
         PointSet.clear();

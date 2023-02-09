@@ -13,7 +13,7 @@ point_c = (RM*point_c')';
 point_c  = point_c + 5*rand(size(point_c,1),size(point_c,2));
 
 point_rand_rot = [ start_point ; point_c + repmat(center,size(point,1),1)];
-plot3( point_rand_rot(:,1) , point_rand_rot(:,2) , point_rand_rot(:,3))
+plot3( point_rand_rot(:,1) , point_rand_rot(:,2) , point_rand_rot(:,3), 'Marker','o','LineStyle','--')
 title("Sorted Curve")
 hold on
 pause(0.1)

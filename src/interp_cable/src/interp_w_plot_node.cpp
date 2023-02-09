@@ -1,4 +1,5 @@
 #include <ros/ros.h>
+#include <map>
 #include <geometry_msgs/PoseArray.h>
 #include <interp_cable/sort.hpp>
 
@@ -141,10 +142,6 @@ int main(int argc, char **argv)
                     plot_z.push_back(PointSet[i][2]);
                 }
 
-                // plt::close();
-                ////////////////////////////////////////////////////////////////////////////
-                ////////////////////////////////////////////////////////////////////////////
-
                 ////////////////////////////////////////////////////////////////////////////
                 ///////////// Perform spline interpolation//////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
@@ -156,8 +153,8 @@ int main(int argc, char **argv)
                 Cable::paraspline * spline;
                 for (int i = 0; i < 3; i++)
                 {
-                    ROS_INFO("Loop Start");
                     spline = new Cable::paraspline;
+                    // ROS_INFO("Good 1");
                     spline->set_boundary(Cable::paraspline::bound_type::first_order, 0.0,
                                         Cable::paraspline::bound_type::first_order, 0.0);
 
@@ -173,36 +170,35 @@ int main(int argc, char **argv)
                     {
                         interp_obj = plot_z;
                     }
-                    ROS_INFO_STREAM("the length of the interpolation object is " << interp_obj.size());
+                    // ROS_INFO_STREAM("the length of the interpolation object is " << interp_obj.size());
+ 
                     spline->set_points(interp_space, interp_obj, Cable::paraspline::cubic);
 
-                    auto fine_space = linspace(interp_obj[0], interp_obj[plot_x.size() - 1], 100);
-                    for (int j = 0; j < 99; j++)
-                    {
-                        // std::cout << fine_space[j] << std::endl;
+                    auto fine_space = linspace(0, 1, 100);
 
-                        // interp_plot.push_back(spline(fine_space[j]));
+                    for (int j = 0; j < fine_space.size(); j++)
+                    {
                         interp_plot.push_back(spline->operator()(fine_space[j]));
                     }
 
-                    // std::cout<< i << "th iteration" << std::endl;
-
-                    // spline.~paraspline();
-                    PlotSet.push_back(interp_obj);
+                    PlotSet.push_back(interp_plot);
 
                     interp_obj.clear();
                     interp_plot.clear();
-                    spline->~paraspline();
                     delete spline;
-                    ROS_INFO("Loop end");
                 }
 
                 plt::clf();
                 std::vector<double> temp_x = PlotSet[0];
                 std::vector<double> temp_y = PlotSet[1];
 
+                std::map<std::string, std::string> kwargs;
+                kwargs["marker"] = "o";
+                kwargs["linestyle"] = "none";
+                kwargs["linewidth"] = "1";
+                kwargs["markersize"] = "12";
                 plt::plot(temp_x, temp_y); // 2D plot animation works fine
-                // plt::scatter(plot_x,plot_y,plot_z);
+                plt::plot(plot_x,plot_y,kwargs);
                 // plt::show();
                 plt::pause(0.01);
                 plot_x.clear();

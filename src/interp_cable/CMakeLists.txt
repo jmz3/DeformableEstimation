@@ -175,6 +175,7 @@ target_link_libraries(test_node
 target_link_libraries(interp_node
   ${catkin_LIBRARIES}
   sort
+  utilities
   paraspline
 )
 target_link_libraries(interp_w_plot_node
