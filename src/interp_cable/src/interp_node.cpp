@@ -183,6 +183,17 @@ int main(int argc, char **argv)
                     delete spline;
                 }
 
+                // ROS_INFO_STREAM("**Plot set has size of "<<PlotSet[0].size())
+
+                for(int i = 0; i < PlotSet[0].size(); i++){
+                    p_temp.position.x = PlotSet[0][i];
+                    p_temp.position.y = PlotSet[1][i];
+                    p_temp.position.z = PlotSet[2][i];
+                    out_ir.poses.push_back(p_temp);
+                }
+
+                plot_pub.publish(out_ir);
+
                 plot_x.clear();
                 plot_y.clear();
                 plot_z.clear();
