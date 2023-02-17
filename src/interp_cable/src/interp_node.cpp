@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <geometry_msgs/PoseArray.h>
+#include <std_msgs/Float64MultiArray.h>
 #include <interp_cable/sort.hpp>
 
 #include <interp_cable/utilities.hpp>
@@ -80,6 +81,7 @@ int main(int argc, char **argv)
     ros::Subscriber NDI_point_sub_;
     ros::Subscriber NDI_vector_sub_;
     ros::Publisher sorted_pub_;
+    ros::Publisher plot_pub;
 
     // get parameters
     //------------------------------------------------------------------------------
@@ -95,6 +97,8 @@ int main(int argc, char **argv)
     NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 1, NDI_point_callback);
     NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
+    plot_pub = nh.advertise<geometry_msgs::PoseArray>("plot_array", 10);
+
     // set_direction();
     ros::Rate rate(50);
     // std::cout<<"arrive sub\n";
@@ -137,6 +141,7 @@ int main(int argc, char **argv)
                 ///////////// Perform spline interpolation//////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
                 std::vector<std::vector<double>> PlotSet;
+                geometry_msgs::PoseArray out_ir; // Output the fine spaced interpolation result
                 auto interp_space = linspace(0.0, 1.0, plot_x.size());
                 std::vector<double> interp_obj;
 
