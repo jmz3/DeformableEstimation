@@ -6,7 +6,7 @@
 #include <interp_cable/utilities.hpp>
 #include <interp_cable/paraspline.hpp>
 
-std::vector<std::vector<double>> PointSet;
+std::vector<std::vector<double>> OpticalReading;
 std::vector<double> startN; // Known normal vector for the starting
 std::vector<double> startP; // Known starting point coordinates
 double theta_max = M_PI;
@@ -26,7 +26,7 @@ void printv(std::vector<double> &a)
 void NDI_point_callback(const geometry_msgs::PoseArray &p)
 {
     // std::cout<<"get in callback\n";
-    PointSet.clear();
+    OpticalReading.clear();
     startP.clear();
     std::vector<double> temp; // Temporary point tuple of (x,y,z)
     //------------------------------------------------------------------------------
@@ -45,12 +45,12 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
         else
         {
             // std::cout<<"length is :"<<i<<std::endl;
-            PointSet.push_back(temp);
+            OpticalReading.push_back(temp);
         }
         temp.clear();
     }
 
-    if (PointSet.size() >= 1)
+    if (OpticalReading.size() >= 1)
     {
         ROS_INFO("Poses are caught!");
     }
@@ -92,6 +92,13 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------------------
     std::vector<double> plot_x, plot_y, plot_z;
 
+    geometry_msgs::Pose temp_pose;
+    geometry_msgs::PoseArray out_sorted;
+    std::vector<double> interp_obj;
+    std::vector<std::vector<double>> interp_result;
+    geometry_msgs::PoseArray out_ir; // Output the fine spaced interpolation result
+    auto interp_space = linspace(0.0, 1.0, plot_x.size());
+
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
     NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 1, NDI_point_callback);
@@ -108,48 +115,43 @@ int main(int argc, char **argv)
         // sort the points here
         if (NDI_point_sub_.getNumPublishers() != 0)
         {
-            if (PointSet.size() != 0)
+            if (OpticalReading.size() != 0)
             {
                 Cable::Sort sort(theta_max, theta_min, dL, sigma, startP, startN);
-                sort.fsort(PointSet);
+                sort.fsort(OpticalReading);
 
                 // Publish the result
-                geometry_msgs::Pose p_temp;
-                geometry_msgs::PoseArray output;
-                for (int i = 0; i < PointSet.size(); i++)
-                {
-                    p_temp.position.x = PointSet[i][0];
-                    p_temp.position.y = PointSet[i][1];
-                    p_temp.position.z = PointSet[i][2];
 
-                    output.poses.push_back(p_temp);
-                    // std::cout << output.poses[i].position.x << "\n"
-                    //           << output.poses[i].position.y << "\n"
-                    //           << output.poses[i].position.z << std::endl;
+                for (int i = 0; i < OpticalReading.size(); i++)
+                {
+                    temp_pose.position.x = OpticalReading[i][0];
+                    temp_pose.position.y = OpticalReading[i][1];
+                    temp_pose.position.z = OpticalReading[i][2];
+
+                    out_sorted.poses.push_back(temp_pose);
+                    // std::cout << out_sorted.poses[i].position.x << "\n"
+                    //           << out_sorted.poses[i].position.y << "\n"
+                    //           << out_sorted.poses[i].position.z << std::endl;
                 }
 
-                sorted_pub_.publish(output);
+                sorted_pub_.publish(out_sorted);
 
-                for (int i = 0; i < PointSet.size(); i++)
+                for (int i = 0; i < OpticalReading.size(); i++)
                 {
-                    plot_x.push_back(PointSet[i][0]);
-                    plot_y.push_back(PointSet[i][1]);
-                    plot_z.push_back(PointSet[i][2]);
+                    plot_x.push_back(OpticalReading[i][0]);
+                    plot_y.push_back(OpticalReading[i][1]);
+                    plot_z.push_back(OpticalReading[i][2]);
                 }
 
                 ////////////////////////////////////////////////////////////////////////////
                 ///////////// Perform spline interpolation//////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
-                std::vector<std::vector<double>> PlotSet;
-                geometry_msgs::PoseArray out_ir; // Output the fine spaced interpolation result
-                auto interp_space = linspace(0.0, 1.0, plot_x.size());
-                std::vector<double> interp_obj;
 
                 Cable::paraspline *spline;
                 for (int i = 0; i < 3; i++)
                 {
                     spline = new Cable::paraspline;
-                    // ROS_INFO("Good 1");
+
                     spline->set_boundary(Cable::paraspline::bound_type::first_order, 0.0,
                                          Cable::paraspline::bound_type::first_order, 0.0);
 
@@ -177,19 +179,20 @@ int main(int argc, char **argv)
                         interp_obj.push_back(spline->operator()(fine_space[j]));
                     }
 
-                    PlotSet.push_back(interp_obj);
+                    interp_result.push_back(interp_obj);
 
                     interp_obj.clear();
                     delete spline;
                 }
 
-                // ROS_INFO_STREAM("**Plot set has size of "<<PlotSet[0].size())
+                // ROS_INFO_STREAM("**Plot set has size of "<<interp_result[0].size())
 
-                for(int i = 0; i < PlotSet[0].size(); i++){
-                    p_temp.position.x = PlotSet[0][i];
-                    p_temp.position.y = PlotSet[1][i];
-                    p_temp.position.z = PlotSet[2][i];
-                    out_ir.poses.push_back(p_temp);
+                for (int i = 0; i < interp_result[0].size(); i++)
+                {
+                    temp_pose.position.x = interp_result[0][i];
+                    temp_pose.position.y = interp_result[1][i];
+                    temp_pose.position.z = interp_result[2][i];
+                    out_ir.poses.push_back(temp_pose);
                 }
 
                 plot_pub.publish(out_ir);
@@ -199,7 +202,7 @@ int main(int argc, char **argv)
                 plot_z.clear();
             }
         }
-        PointSet.clear();
+        OpticalReading.clear();
         startP.clear();
 
         ros::spinOnce();

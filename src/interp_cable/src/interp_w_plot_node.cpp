@@ -9,7 +9,7 @@
 
 namespace plt = matplotlibcpp;
 
-std::vector<std::vector<double>> PointSet;
+std::vector<std::vector<double>> OpticalReading;
 std::vector<double> startN; // Known normal vector for the starting
 std::vector<double> startP; // Known starting point coordinates
 double theta_max = M_PI;
@@ -29,7 +29,7 @@ void printv(std::vector<double> &a)
 void NDI_point_callback(const geometry_msgs::PoseArray &p)
 {
     // std::cout<<"get in callback\n";
-    PointSet.clear();
+    OpticalReading.clear();
     startP.clear();
     std::vector<double> temp; // Temporary point tuple of (x,y,z)
     //------------------------------------------------------------------------------
@@ -48,12 +48,12 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
         else
         {
             // std::cout<<"length is :"<<i<<std::endl;
-            PointSet.push_back(temp);
+            OpticalReading.push_back(temp);
         }
         temp.clear();
     }
 
-    if (PointSet.size() >= 1)
+    if (OpticalReading.size() >= 1)
     {
         ROS_INFO("Poses are caught!");
     }
@@ -110,19 +110,19 @@ int main(int argc, char **argv)
         // sort the points here
         if (NDI_point_sub_.getNumPublishers() != 0)
         {
-            if (PointSet.size() != 0)
+            if (OpticalReading.size() != 0)
             {
                 Cable::Sort sort(theta_max, theta_min, dL, sigma, startP, startN);
-                sort.fsort(PointSet);
+                sort.fsort(OpticalReading);
 
                 // Publish the result
                 geometry_msgs::Pose p_temp;
                 geometry_msgs::PoseArray output;
-                for (int i = 0; i < PointSet.size(); i++)
+                for (int i = 0; i < OpticalReading.size(); i++)
                 {
-                    p_temp.position.x = PointSet[i][0];
-                    p_temp.position.y = PointSet[i][1];
-                    p_temp.position.z = PointSet[i][2];
+                    p_temp.position.x = OpticalReading[i][0];
+                    p_temp.position.y = OpticalReading[i][1];
+                    p_temp.position.z = OpticalReading[i][2];
 
                     output.poses.push_back(p_temp);
                     // std::cout << output.poses[i].position.x << "\n"
@@ -135,11 +135,11 @@ int main(int argc, char **argv)
                 ////////////////////////////////////////////////////////////////////////////
                 ///////// Plot Using Matplotlib-cpp Bridge//////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
-                for (int i = 0; i < PointSet.size(); i++)
+                for (int i = 0; i < OpticalReading.size(); i++)
                 {
-                    plot_x.push_back(PointSet[i][0]);
-                    plot_y.push_back(PointSet[i][1]);
-                    plot_z.push_back(PointSet[i][2]);
+                    plot_x.push_back(OpticalReading[i][0]);
+                    plot_y.push_back(OpticalReading[i][1]);
+                    plot_z.push_back(OpticalReading[i][2]);
                 }
 
                 ////////////////////////////////////////////////////////////////////////////
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
                 plot_z.clear();
             }
         }
-        PointSet.clear();
+        OpticalReading.clear();
         startP.clear();
 
         ros::spinOnce();
