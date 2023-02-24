@@ -2,9 +2,12 @@
 #include <geometry_msgs/PoseArray.h>
 #include <std_msgs/Float64MultiArray.h>
 #include <interp_cable/sort.hpp>
-
 #include <interp_cable/utilities.hpp>
 #include <interp_cable/paraspline.hpp>
+
+
+
+
 
 std::vector<std::vector<double>> OpticalReading;
 std::vector<double> startN; // Known normal vector for the starting
@@ -97,7 +100,7 @@ int main(int argc, char **argv)
     std::vector<double> interp_obj;
     std::vector<std::vector<double>> interp_result;
     geometry_msgs::PoseArray out_ir; // Output the fine spaced interpolation result
-    auto interp_space = linspace(0.0, 1.0, plot_x.size());
+    
 
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
@@ -142,7 +145,7 @@ int main(int argc, char **argv)
                     plot_y.push_back(OpticalReading[i][1]);
                     plot_z.push_back(OpticalReading[i][2]);
                 }
-
+                auto interp_space = linspace(0.0, 1.0, plot_x.size());
                 ////////////////////////////////////////////////////////////////////////////
                 ///////////// Perform spline interpolation//////////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////
