@@ -222,7 +222,6 @@ int main(int argc, char **argv)
                 // plt::show();
                 plt::pause(0.05);
                 plt::clf();
-
                 plot_x.clear();
                 plot_y.clear();
                 plot_z.clear();
