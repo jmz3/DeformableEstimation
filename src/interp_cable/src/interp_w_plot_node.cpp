@@ -111,7 +111,7 @@ int main(int argc, char **argv)
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
     set_direction();
     set_startpoint();
-    ROS_INFO("%d", startP.size());
+    ROS_INFO("%f", startP.size());
     ros::Rate rate(50);
 
     while (nh.ok())
