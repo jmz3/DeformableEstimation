@@ -1,0 +1,9 @@
+<launch>
+
+    <node pkg="rosbag" type="play" name="rosbag_play" output="screen"
+        args="--clock $(find interp_cable)/bags/NDI.bag" />
+
+    <node pkg="interp_cable" name="interp_w_plot_node" output="screen" />
+
+
+</launch>
