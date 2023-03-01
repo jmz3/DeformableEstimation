@@ -4,13 +4,21 @@
 #include <numeric>
 #include <cmath>
 #include <interp_cable/sort.hpp>
+#include <interp_cable/utilities.hpp>
 
-Cable::Sort::Sort(double theta_max, double theta_min, double dL, double sigma,
-                  std::vector<double> StartP, std::vector<double> StartN) : theta_max(theta_max), theta_min(theta_min), dL(dL), sigma(sigma), StartP(StartP), StartN(StartN)
+Cable::Sort::Sort(double theta_max,
+                  double theta_min,
+                  double dL,
+                  double sigma,
+                  std::vector<double> StartP,
+                  std::vector<double> StartN,
+                  bool include_start = true)
+    : theta_max(theta_max), theta_min(theta_min), dL(dL), sigma(sigma), StartP(StartP), StartN(StartN), include_start(include_start)
 {
     // Size check
     ROS_ASSERT(StartP.size() == 3);
     ROS_ASSERT(StartN.size() == 3);
+
 };
 
 Cable::Sort::~Sort(){};
@@ -119,7 +127,13 @@ void Cable::Sort::init(std::vector<std::vector<double>> &ps)
     Direction.clear();
     Direction.push_back(StartN);
 
-    ps.insert(ps.begin(), StartP);
+    if(include_start == true){
+        ps.insert(ps.begin(), StartP);
+    }
+    else{
+        
+    }
+    
 };
 
 void Cable::Sort::fsort(std::vector<std::vector<double>> &ps)
