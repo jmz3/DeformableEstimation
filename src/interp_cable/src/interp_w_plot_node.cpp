@@ -125,7 +125,7 @@ int main(int argc, char **argv)
             if (OpticalReading.size() != 0)
             {
                 set_startpoint();
-                Cable::Sort sort(theta_max, theta_min, dL, sigma, startP, startN);
+                Cable::Sort sort(theta_max, theta_min, dL, sigma, startP, startN, false);
                 sort.fsort(OpticalReading);
 
                 // Publish the result

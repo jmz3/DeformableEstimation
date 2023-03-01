@@ -27,7 +27,7 @@ namespace Cable
 
     public:
         Sort(double theta_max, double theta_min, double dL, double sigma,
-             std::vector<double> StartP, std::vector<double> StartN, bool include_start = true);
+             std::vector<double> StartP, std::vector<double> StartN, bool include_start);
         ~Sort();
 
         double fangle(std::vector<double> &a, std::vector<double> &b); // Angle between two vectors
