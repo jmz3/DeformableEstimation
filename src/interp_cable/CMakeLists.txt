@@ -163,14 +163,16 @@ add_executable(interp_w_plot_node src/interp_w_plot_node.cpp)
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
 # )
-target_link_libraries(sort
-  ${catkin_LIBRARIES}
-)
+
 target_link_libraries(paraspline
   ${catkin_LIBRARIES}
 )
 target_link_libraries(utilities
   ${catkin_LIBRARIES}
+)
+target_link_libraries(sort
+  ${catkin_LIBRARIES}
+  utilities
 )
 target_link_libraries(test_node
   ${catkin_LIBRARIES}

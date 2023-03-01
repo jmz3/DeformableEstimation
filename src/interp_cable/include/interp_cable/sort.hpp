@@ -8,6 +8,7 @@ namespace Cable
     private:
         double theta_max, theta_min, dL;
         double sigma;
+        bool include_start;
 
         std::vector<double> TempPosition; // Temporary point tuple of (x,y,z)
         std::vector<double> StartP, StartN;
@@ -26,7 +27,7 @@ namespace Cable
 
     public:
         Sort(double theta_max, double theta_min, double dL, double sigma,
-             std::vector<double> StartP, std::vector<double> StartN);
+             std::vector<double> StartP, std::vector<double> StartN, bool include_start = true);
         ~Sort();
 
         double fangle(std::vector<double> &a, std::vector<double> &b); // Angle between two vectors
