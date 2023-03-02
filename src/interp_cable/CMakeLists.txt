@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 find_package(PythonLibs REQUIRED)
+find_package(Eigen3 REQUIRED)
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scriptsPROGRAMS declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
