@@ -24,3 +24,12 @@ int find_closest_point(vector<vector<double>> &pointset, vector<double> &point) 
     }
     return index;
 }
+
+void printv(vector<double> &a)
+{
+    for (int i = 0; i < a.size(); i++)
+    {
+        cout << a[i] << ", ";
+    }
+    cout << endl;
+}

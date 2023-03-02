@@ -24,14 +24,6 @@ double theta_min = 0.0;
 double dL = 200;
 double sigma = 0.25 * dL;
 
-void printv(std::vector<double> &a)
-{
-    for (int i = 0; i < a.size(); i++)
-    {
-        std::cout << a[i] << ", ";
-    }
-    std::cout << std::endl;
-}
 
 void NDI_point_callback(const geometry_msgs::PoseArray &p)
 {
@@ -138,7 +130,8 @@ int main(int argc, char **argv)
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
     set_direction();
     set_startpoint();
-    ROS_INFO("%f", startP.size());
+    ROS_ASSERT( startP.size() == 3);
+
     ros::Rate rate(50);
 
     while (nh.ok())
