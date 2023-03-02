@@ -12,7 +12,7 @@ Cable::Sort::Sort(double theta_max,
                   double sigma,
                   std::vector<double> StartP,
                   std::vector<double> StartN,
-                  bool include_start = true)
+                  bool include_start)
     : theta_max(theta_max), theta_min(theta_min), dL(dL), sigma(sigma), StartP(StartP), StartN(StartN), include_start(include_start)
 {
     // Size check
@@ -130,8 +130,10 @@ void Cable::Sort::init(std::vector<std::vector<double>> &ps)
     if(include_start == true){
         ps.insert(ps.begin(), StartP);
     }
-    else{
-        
+    else if(include_start == false){
+        int closest_idx = find_closest_point(ps, StartP);
+        ps.insert(ps.begin(), 1, ps[closest_idx]);
+        ps.erase(ps.begin() + closest_idx + 1);
     }
     
 };

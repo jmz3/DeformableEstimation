@@ -11,4 +11,4 @@ using namespace std;
 vector<double> linspace(double start, double end, int n);
 
 ////////////////////////////////////////////////////////////
-int find_closest(vector<vector<double>> &pointset, vector<double> &point);
+int find_closest_point(vector<vector<double>> &pointset, vector<double> &point);
