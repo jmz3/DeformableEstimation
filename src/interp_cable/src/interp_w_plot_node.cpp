@@ -18,6 +18,10 @@ std::vector<std::vector<double>> OpticalReading;
 std::vector<double> startN; // Known normal vector for the starting
 std::vector<double> startP; // Known starting point coordinates
 std::vector<double> endN;   // Known normal vector for the ending
+
+geometry_msgs::PoseArray sorted_output;
+geometry_msgs::PoseArray interp_output;
+
 int num_of_markers = 0;
 double theta_max = M_PI;
 double theta_min = 0.0;
@@ -112,6 +116,7 @@ int main(int argc, char **argv)
     ros::Subscriber NDI_vector_sub_;
     ros::Subscriber NDI_pointer_sub_;
     ros::Publisher sorted_pub_;
+    ros::Publisher interp_pub_;
 
     // get parameters
     //------------------------------------------------------------------------------
@@ -127,7 +132,10 @@ int main(int argc, char **argv)
     NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 1, NDI_point_callback);
     NDI_pointer_sub_ = nh.subscribe("/NDI/PointerNew/measured_cp", 1, NDI_pointer_callback);
     // NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
-    sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/cpp_test", 10);
+
+    sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/Sorted", 10);
+    interp_pub_ = nh.advertise<geometry_msgs::PoseArray>("/Interp", 10);
+
     set_direction();
     set_startpoint();
     ROS_ASSERT( startP.size() == 3);
@@ -157,7 +165,7 @@ int main(int argc, char **argv)
 
             // Publish the result
             geometry_msgs::Pose p_temp;
-            geometry_msgs::PoseArray output;
+            
             // std::cout << "Optical Reading has " << OpticalReading.size() << " points \n";
             for (int i = 0; i < OpticalReading.size(); i++)
             {
@@ -165,13 +173,13 @@ int main(int argc, char **argv)
                 p_temp.position.y = OpticalReading[i][1];
                 p_temp.position.z = OpticalReading[i][2];
 
-                output.poses.push_back(p_temp);
-                // std::cout << output.poses[i].position.x << "\n"
-                //   << output.poses[i].position.y << "\n"
-                //   << output.poses[i].position.z << std::endl;
+                sorted_output.poses.push_back(p_temp);
+                // std::cout << sorted_output.poses[i].position.x << "\n"
+                //   << sorted_output.poses[i].position.y << "\n"
+                //   << sorted_output.poses[i].position.z << std::endl;
             }
-            // std::cout << "output has " << output.poses.size() << " points \n";
-            sorted_pub_.publish(output);
+            // std::cout << "sorted_output has " << sorted_output.poses.size() << " points \n";
+            
 
             ////////////////////////////////////////////////////////////////////////////
             ///////// Plot Using Matplotlib-cpp Bridge//////////////////////////////////
@@ -184,7 +192,7 @@ int main(int argc, char **argv)
             }
 
             ////////////////////////////////////////////////////////////////////////////
-            ///////////// Perform spline interpolation//////////////////////////////////
+            ///////////// Perform spline interpolation /////////////////////////////////
             ////////////////////////////////////////////////////////////////////////////
             std::vector<std::vector<double>> PlotSet;
             auto interp_space = linspace(0.0, 1.0, plot_x.size());
@@ -247,7 +255,7 @@ int main(int argc, char **argv)
             kwargs["linewidth"] = "1";
             kwargs["markersize"] = "2";
             // plt::plot(temp_x, temp_y); // 2D plot animation works fine
-            // plt::plot(plot_x,plot_y,kwargs);
+            // plt::plot(plot_x,plot_y,kwargs);sorted_output
 
             plt::plot3(temp_x, temp_y, temp_z, kwargs, fg);
             plt::xlim(-300.0, 500.0);
@@ -258,6 +266,22 @@ int main(int argc, char **argv)
             plot_x.clear();
             plot_y.clear();
             plot_z.clear();
+
+            for (int k=0; k<PlotSet[0].size(); k++)
+            {
+                p_temp.position.x = PlotSet[0][k];
+                p_temp.position.y = PlotSet[1][k];
+                p_temp.position.z = PlotSet[2][k];
+
+                interp_output.poses.push_back(p_temp);
+            }
+
+            ROS_INFO_STREAM("The published data has the length "<< interp_output.poses.size());
+            sorted_pub_.publish(sorted_output);
+            interp_pub_.publish(interp_output);
+
+            sorted_output.poses.clear();
+            interp_output.poses.clear();
         }
         else
         {

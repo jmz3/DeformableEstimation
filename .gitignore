@@ -138,3 +138,7 @@ logs/
 
 .vscode/
 .catkin_tools/
+cmake-build-debug/
+cmake-build-release/
+.VSCodeCounter/
+
