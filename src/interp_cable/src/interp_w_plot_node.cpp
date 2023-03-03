@@ -14,6 +14,7 @@
 namespace plt = matplotlibcpp;
 const long fg = plt::figure();
 
+
 std::vector<std::vector<double>> OpticalReading;
 std::vector<double> startN; // Known normal vector for the starting
 std::vector<double> startP; // Known starting point coordinates
@@ -118,11 +119,6 @@ int main(int argc, char **argv)
     ros::Publisher sorted_pub_;
     ros::Publisher interp_pub_;
 
-    // get parameters
-    //------------------------------------------------------------------------------
-    // if(nh.getParam(/theta_max, theta_max)){
-    // }
-
     // Initialize object to plot
     //------------------------------------------------------------------------------
     std::vector<double> plot_x, plot_y, plot_z;
@@ -141,6 +137,7 @@ int main(int argc, char **argv)
     ROS_ASSERT( startP.size() == 3);
 
     ros::Rate rate(100);
+    
 
     while (nh.ok())
     {
@@ -159,7 +156,7 @@ int main(int argc, char **argv)
             OpticalReading.size() == num_of_markers)
         // check if the subscriber is connected, and the number of points is correct
         {
-            set_startpoint();
+            set_startpoint(); // set the start point to the first point of the cable
             Cable::Sort sort(theta_max, theta_min, dL, sigma, startP, startN, false);
             sort.fsort(OpticalReading);
 
@@ -258,7 +255,10 @@ int main(int argc, char **argv)
             // plt::plot(plot_x,plot_y,kwargs);sorted_output
 
             plt::plot3(temp_x, temp_y, temp_z, kwargs, fg);
-            plt::xlim(-300.0, 500.0);
+            plt::title("Interpolated Cable");
+            plt::xlabel("x");
+            plt::ylabel("y");
+            plt::xlim(-300.0, 600.0);
             plt::ylim(-700.0, 700.0);
             // plt::show();
             plt::pause(0.01);
