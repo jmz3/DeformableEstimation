@@ -16,3 +16,8 @@ You have to specify the figure index when you call plot3 func.</p>
 <p>
 Tested on data recorded using rosbag.
 Add Functionality for asking whether to include the start point in the Optical Reading Set.</p>
+
+### 2023 03 03
+Integrated ROS with taichi package. To avoid the conflicts between the anaconda env and ros default env, we can simply install taichi on the base python environment where the ros is installed.
+
+Of course there is another more elegant way of doing this, which is install ros-noetic via conda install command. 
