@@ -140,7 +140,7 @@ int main(int argc, char **argv)
     set_startpoint();
     ROS_ASSERT( startP.size() == 3);
 
-    ros::Rate rate(50);
+    ros::Rate rate(1000);
 
     while (nh.ok())
     {
