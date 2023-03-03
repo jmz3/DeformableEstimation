@@ -44,11 +44,11 @@ def visualize():
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Z')
-
+ # type: ignore
     ax.set_xlim(left=-400, right=600)
     ax.set_ylim(-600, 600)
     ax.set_zlim(-1500, -900)
-
+ # type: ignore
     ax.legend()
     ax.set_title('Real-time Interpolation')
     plt.draw()
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     fig = plt.figure()
     ax = plt.axes(projection='3d')
 
-    rospy.init_node('listener', anonymous=True)
+    rospy.init_node('ploter', anonymous=True)
     rate = rospy.Rate(100)  # 10hz
     rospy.Subscriber("Interp", PoseArray, interp_callback)
     rospy.Subscriber("Sorted", PoseArray, sorted_callback)
