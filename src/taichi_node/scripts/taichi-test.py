@@ -1,36 +1,39 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
 from __future__ import annotations
 import os 
 import sys
-
 script_dir = os.path.dirname(__file__)
 # mesh_dir = os.path.joint( script_dir)
 sys.path.append(script_dir)
+
+
 import taichi as ti
 from taichiCubeImport import data
 import numpy as np
+from scipy.spatial.transform import Rotation
 import rospy
 from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import TransformStamped
 
 
 @ti.kernel
-def update_Cube1(x: np.ndarray, y: np.ndarray, z:np.ndarray):
-    offset = ti.Vector([x[0],y[0],z[0]])
+def update_Cube1():
+    offset_cube1 = ti.Vector([x[0], y[0], z[0]], float)
     for i in ti.grouped(cube1_vertex):
-        cube1_vertex[i] = offset
+        cube1_vertex[i] = offset_cube1
 
 @ti.kernel
-def update_Cube2(x: np.ndarray, y: np.ndarray, z:np.ndarray):
-    angle = theta[0]
+def update_Cube2():
+
     # angle += 0.01
     # theta[0] = angle
-    print("updating cube2")
+    # print("updating cube2")
     # offset = ti.Vector([0.01 * ti.sin(angle),0.0,0.0])
     # for i in ti.grouped(cube2_vertex):
     #     cube2_vertex[i] += offset
-    offset = ti.Vector([x[x.size()-1], y[y.size()-1], z[z.size()-1]])
+
+    offset = ti.Vector([free_end[0],free_end[1],free_end[2]])
     for i in ti.grouped(cube2_vertex):
         cube2_vertex[i] = offset
 
@@ -59,7 +62,7 @@ def initialize_cable_points():
 @ti.kernel
 def update_cable():
 
-    print("update cable")
+    # print("update cable")
     # Simulation
     for i in ti.grouped(CurPos):
         Vel[i] = CurPos[i] - OldPos[i]
@@ -68,7 +71,7 @@ def update_cable():
         CurPos[i] += (Vel[i] + G) * 0.97 # Gravity Term needs to be verifiedc
         # CurPos[i] += Vel[i]
     # print(OldPos)
-    print(Vel[1])
+    # print(Vel[1])
 
 
     # Constraints
@@ -112,18 +115,27 @@ def boundary_condition():
 def compute_force():
     pass
 
-def taichi_CB(sorted_pointset):
+def sorted_CB(sorted_pointset):
     # rospy.loginfo("Successful")
-    temp_x, temp_y, temp_z = [],[],[]
-
+    
+    OpticalReading = ti.Vector.field(3,dtype=float,shape=len(sorted_pointset.poses))
     for i in range(len(sorted_pointset.poses)):
-        temp_x.append(sorted_pointset.poses[i].position.x)
-        temp_y.append(sorted_pointset.poses[i].position.y)
-        temp_z.append(sorted_pointset.poses[i].position.z)
+        x.append(0.001 * sorted_pointset.poses[i].position.x)
+        y.append(0.001 * sorted_pointset.poses[i].position.y)
+        z.append(0.001 * sorted_pointset.poses[i].position.z)
 
-    x = np.array(temp_x)
-    y = np.array(temp_y)
-    z = np.array(temp_z)
+    OpticalReading[0] = x
+    OpticalReading[1] = y
+    OpticalReading[2] = z
+    
+
+
+def free_end_CB(free_end_point):
+    free_end.append(free_end_point.transform.translation.x)
+    free_end.append(free_end_point.transform.translation.y)
+    free_end.append(free_end_point.transform.translation.z)
+
+    update_free_end = True
 
 
 
@@ -136,17 +148,16 @@ if __name__=="__main__":
     theta = ti.field(float, 1)
 
     CurPos = ti.Vector.field(3, dtype=float, shape=n)
-    OldPos = ti.Vector.field(3, dtype=float, shape=n)
+    OldPos = ti.Vector.field(3, dtype=float, shape=n) # 3 x n x 1 
     Vel = ti.Vector.field(3, dtype=float, shape= n)
     gravity = ti.field(dtype=float,shape=(3))
-    gravity = [0,-9.8,0];
+    gravity = [0,-9.8,0]
     deltaTime = 0.0001
     force = ti.Vector.field(3, dtype=float, shape= n)
     dm = 0.1
+
+    
     # you need to define more parameters here, such as stiffness,dt,length of spring .......
-
-
-    #initialize two cubes
 
 
     cube1_vertex = ti.Vector.field(3, dtype=float, shape= len(data))
@@ -169,22 +180,29 @@ if __name__=="__main__":
 
     initialize_cable_points()
 
+    x, y, z = [], [], []
+    free_end = []
+    OpticalReading = ti.Vector.field(3, dtype=float, shape= 1)
     rospy.init_node('taichi_node')
-    rospy.Subscriber("Sorted", PoseArray, taichi_CB)
+
+    rospy.Subscriber("Sorted", PoseArray, sorted_CB)
+    rospy.Subscriber("/NDI/PointerNew/measured_cp", TransformStamped, free_end_CB)
     rate = rospy.Rate(100)  # 10hz
-    x = np.zeros(10)
-    y = np.zeros(10)
-    z = np.zeros(10)
+
 
     while not rospy.is_shutdown():
-        
+        # print(x)
         update_cable()
-        optical_reading = ti.Matrix(x,y,z)
-        update_Cube1(optical_reading)
-        theta[0] += 0.01
-        update_Cube2(optical_reading)
-        # print(CurPos[1][1])
 
+        # constrain the cube when moving signal is received
+        if rospy.get_param('/ReadingCatched'):
+            update_Cube1()
+            # correct or initialize the cable shape via optical reading
+            pass
+        else:
+            # run purely on simulation
+            pass
+        update_Cube2()
         camera.track_user_inputs(window, movement_speed=.03, hold_key=ti.ui.SPACE)
         scene.set_camera(camera)
         scene.ambient_light((1, 1, 1))
@@ -194,6 +212,13 @@ if __name__=="__main__":
 
         # Draw 3d-lines in the scene
         scene.lines(CurPos, color = (1, 1, 1), width = 0.01)
-        scene.particles(CurPos, color = (1, 1, 1), radius = 0.01)
+        scene.particles(OpticalReading, color = (1, 1, 1), radius = 0.01)
         canvas.scene(scene)
         window.show()
+
+
+        x.clear()
+        y.clear()
+        z.clear()
+        rate.sleep()
+

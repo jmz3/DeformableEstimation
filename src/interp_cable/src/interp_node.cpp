@@ -132,8 +132,9 @@ int main(int argc, char **argv)
         nh.getParam("/marker_num", num_of_markers);
         if (num_of_markers == 0)
         {
+            nh.setParam("/ReadingCatched", false);
             ROS_INFO("No markers detected!");
-            break;
+            break; 
         }
 
         //------------------------------------------------------------------------------
@@ -143,6 +144,7 @@ int main(int argc, char **argv)
             OpticalReading.size() == num_of_markers)
         // check if the subscriber is connected, and the number of points is correct
         {
+            nh.setParam("/ReadingCatched", true);
             set_startpoint(); // set the start point to the first point of the cable
             Cable::Sort sort(theta_max, theta_min, dL, sigma, startP, startN, false);
             sort.fsort(OpticalReading);
@@ -243,6 +245,7 @@ int main(int argc, char **argv)
         }
         else
         {
+            nh.setParam("/ReadingCatched", false);
             ROS_INFO("Marker data is incomplete!");
         }
         OpticalReading.clear();
