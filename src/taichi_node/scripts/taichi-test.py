@@ -19,21 +19,15 @@ from geometry_msgs.msg import TransformStamped
 
 @ti.kernel
 def update_Cube1():
+
     offset_cube1 = ti.Vector([x[0], y[0], z[0]], float)
     for i in ti.grouped(cube1_vertex):
         cube1_vertex[i] = offset_cube1
 
 @ti.kernel
 def update_Cube2():
-
-    # angle += 0.01
-    # theta[0] = angle
-    # print("updating cube2")
-    # offset = ti.Vector([0.01 * ti.sin(angle),0.0,0.0])
-    # for i in ti.grouped(cube2_vertex):
-    #     cube2_vertex[i] += offset
-
-    offset = ti.Vector([free_end[0],free_end[1],free_end[2]])
+    print("free end position : ", free_end[0])
+    print(offset[0])
     for i in ti.grouped(cube2_vertex):
         cube2_vertex[i] = offset
 
@@ -118,24 +112,20 @@ def compute_force():
 def sorted_CB(sorted_pointset):
     # rospy.loginfo("Successful")
     
-    OpticalReading = ti.Vector.field(3,dtype=float,shape=len(sorted_pointset.poses))
     for i in range(len(sorted_pointset.poses)):
         x.append(0.001 * sorted_pointset.poses[i].position.x)
         y.append(0.001 * sorted_pointset.poses[i].position.y)
         z.append(0.001 * sorted_pointset.poses[i].position.z)
 
-    OpticalReading[0] = x
-    OpticalReading[1] = y
-    OpticalReading[2] = z
     
 
 
 def free_end_CB(free_end_point):
-    free_end.append(free_end_point.transform.translation.x)
-    free_end.append(free_end_point.transform.translation.y)
-    free_end.append(free_end_point.transform.translation.z)
+    free_end[0] = free_end_point.transform.translation.x
+    free_end[1] = free_end_point.transform.translation.y
+    free_end[2] = free_end_point.transform.translation.z
+    print("free end position : ", free_end)
 
-    update_free_end = True
 
 
 
@@ -174,14 +164,15 @@ if __name__=="__main__":
     canvas.set_background_color((0.3, 0.3, 0.4))
     scene = ti.ui.Scene()
     camera = ti.ui.Camera()
-    camera.position(-5, -5, 5)
+    camera.position(-2.5, -2.5, 2.5)
     camera.lookat(0, 0, 0)
     camera.up(0, 0, 1)
 
     initialize_cable_points()
 
     x, y, z = [], [], []
-    free_end = []
+    free_end = np.array([0,0,0], dtype=float)
+    offset = ti.Vector([free_end[0],free_end[1],free_end[2]])
     OpticalReading = ti.Vector.field(3, dtype=float, shape= 1)
     rospy.init_node('taichi_node')
 
@@ -190,19 +181,27 @@ if __name__=="__main__":
     rate = rospy.Rate(100)  # 10hz
 
 
+
+    # for i in ti.grouped(OpticalReading):
+    #     OpticalReading[i] = [x[i], y[i], z[i]]
     while not rospy.is_shutdown():
         # print(x)
         update_cable()
 
         # constrain the cube when moving signal is received
-        if rospy.get_param('/ReadingCatched'):
+        if rospy.get_param('/ReadingCatched') and len(x) != 0:
             update_Cube1()
             # correct or initialize the cable shape via optical reading
-            pass
         else:
             # run purely on simulation
             pass
+
+
+        # print("free end position in update func: ", free_end[0])
+        offset = [free_end[0], free_end[1], free_end[2]]
         update_Cube2()
+
+
         camera.track_user_inputs(window, movement_speed=.03, hold_key=ti.ui.SPACE)
         scene.set_camera(camera)
         scene.ambient_light((1, 1, 1))
@@ -212,10 +211,20 @@ if __name__=="__main__":
 
         # Draw 3d-lines in the scene
         scene.lines(CurPos, color = (1, 1, 1), width = 0.01)
-        scene.particles(OpticalReading, color = (1, 1, 1), radius = 0.01)
         canvas.scene(scene)
         window.show()
 
+        if(rospy.has_param("/marker_num")):
+            num_of_markers = rospy.get_param("/marker_num")
+            OpticalReading = ti.Vector.field(3,dtype=float,shape=num_of_markers)
+            
+            if len(x) != 0:
+                for i in range(len(x)):
+                    OpticalReading[i] = [x[i], y[i], z[i]]
+
+                scene.particles(OpticalReading, color = (1, 1, 1), radius = 0.01)
+            
+            
 
         x.clear()
         y.clear()
