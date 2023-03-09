@@ -184,7 +184,7 @@ if __name__=="__main__":
 
     # for i in ti.grouped(OpticalReading):
     #     OpticalReading[i] = [x[i], y[i], z[i]]
-    while not rospy.is_shutdown():
+    while not rospy.is_shutdown():  
         # print(x)
         update_cable()
 

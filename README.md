@@ -21,3 +21,6 @@ Add Functionality for asking whether to include the start point in the Optical R
 Integrated ROS with taichi package. To avoid the conflicts between the anaconda env and ros default env, we can simply install taichi on the base python environment where the ros is installed.
 
 Of course there is another more elegant way of doing this, which is install ros-noetic via conda install command. The introduction to the repo can be found [here](https://github.com/RoboStack/ros-noetic)
+
+### 2023 03 06
+Need to register physics engine frame and the optical tracker frame
