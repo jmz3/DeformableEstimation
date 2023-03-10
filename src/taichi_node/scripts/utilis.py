@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import fabrik as fab
 import rospy
 from geometry_msgs.msg import PoseArray
 from geometry_msgs.msg import TransformStamped
@@ -21,4 +22,26 @@ class SortedSubscriber:
 
     def free_end_callback(self, msg):
         self.free_end_pose = msg
+
+
+class robot_pos():
+    '''
+    robot_pos is a class that contains the robot's current position and orientation
+    fk is a function that uses the robot's joint angles to calculate the end effector position
+    ik is a function that uses the end effector position to calculate the robot's joint angles
+
+    '''
+    def __init__(self, seg_len: float, seg_dir: list) -> None:
+        self.robot_pose = seg_len
+        # self.sub_robot = rospy.Subscriber("/robot_pose", TransformStamped, self.robot_callback)
+        pass
+
+    def fk(self):
+        pass
+
+    def ik(self):
+        '''
+        inverse kinematics implementation is done using the fabrik algorithm
+        '''
+        pass
 

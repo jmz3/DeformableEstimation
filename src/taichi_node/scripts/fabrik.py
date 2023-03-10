@@ -1,4 +1,4 @@
-# Third party imports 
+# Third party imports
 # Fabrik solver to solve the inverse kinematics problem.
 # https://en.wikipedia.org/wiki/FABRIK
 # https://github.com/saleone/pyfabrik
@@ -16,8 +16,13 @@ from typing import Union
 
 class FabrikBase:
     def __init__(
-        self, joint_positions: List[Union[Vector2, Vector3]], tolerance: float
+        self,
+        joint_positions: List[Union[Vector2, Vector3]],
+        tolerance: float,
+        show_results: bool = False
     ) -> None:
+
+        self.show_results = show_results
         # Tolerance is measured as distance (no negative values) and
         # when tolerance is 0 solver won't be able to finish.
         if tolerance <= 0:
@@ -47,7 +52,7 @@ class FabrikBase:
         if not self._has_moved:
             return self._angles
 
-        print(self.joints)
+        print(self.joints) if self.show_results else None
         angles = [math.atan2(self.joints[1].y, self.joints[1].x)]
 
         prev_angle: float = angles[0]
@@ -95,14 +100,21 @@ class FabrikBase:
             for i in range(0, last):
                 next, current = self.joints[i + 1], self.joints[i]
                 len_share = self.lengths[i] / (next - current).length
-                self.joints[i + 1] = (1 - len_share) * current + len_share * next
+                self.joints[i + 1] = (1 - len_share) * \
+                    current + len_share * next
         return iteration
 
 
 class Fabrik2D(FabrikBase):
-    def __init__(self, joint_positions: List[Vector2], tolerance: float = 0.0) -> None:
+    def __init__(
+        self,
+        joint_positions: List[Vector2],
+        tolerance: float = 0.0,
+        show_results: bool = False
+    ) -> None:
+        self.show_results = show_results
         self.joints: List[Vector2] = joint_positions
-        print(self.joints)
+        print(self.joints) if self.show_results else None
         super().__init__(joint_positions, tolerance)
 
     def move_to(self, target: Vector2, try_to_reach: bool = True) -> int:
@@ -113,7 +125,14 @@ class Fabrik2D(FabrikBase):
 
 
 class Fabrik3D(FabrikBase):
-    def __init__(self, joint_positions: List[Vector3], tolerance: float = 0.0) -> None:
+    def __init__(
+            self,
+            joint_positions: List[Vector3],
+            tolerance: float = 0.0,
+            show_results: bool = False
+    ) -> None:
+        self.show_results = show_results
+        
         self.joints: List[Vector3] = joint_positions
         super().__init__(joint_positions, tolerance)
 

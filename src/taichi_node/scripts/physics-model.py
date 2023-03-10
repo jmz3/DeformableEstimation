@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
+import taichi as ti
+from taichiCubeImport import data
+import numpy as np
+from scipy.spatial.transform import Rotation
+import rospy
+from geometry_msgs.msg import PoseArray
+from geometry_msgs.msg import TransformStamped
+from vectormath import Vector3
+from fabrik import Fabrik3D
+from utilis import SortedSubscriber
 import os
 import sys
 script_dir = os.path.dirname(__file__)
 # mesh_dir = os.path.joint( script_dir)
 sys.path.append(script_dir)
-
-
-from sorted_sub import SortedSubscriber
-from fabrik import Fabrik3D
-
-from geometry_msgs.msg import TransformStamped
-from geometry_msgs.msg import PoseArray
-import rospy
-from scipy.spatial.transform import Rotation
-import numpy as np
-from taichiCubeImport import data
-import taichi as ti
-
 
 
 def initialize():
@@ -31,19 +28,17 @@ def initialize():
 
     scale = 0.05
     for i in range(len(data)):
-        cube1_vertex_origin[i] = [  scale * data[i][0],
-                                    scale * data[i][1], 
-                                    scale * data[i][2] ]
-        cube2_vertex_origin[i] = [  scale * data[i][0],
-                                    scale * data[i][1], 
-                                    scale * data[i][2] ]
+        cube1_vertex_origin[i] = [scale * data[i][0],
+                                  scale * data[i][1],
+                                  scale * data[i][2]]
+        cube2_vertex_origin[i] = [scale * data[i][0],
+                                  scale * data[i][1],
+                                  scale * data[i][2]]
 
     canvas.set_background_color((0.3, 0.3, 0.4))
     camera.position(2.5, -2.5, 2.5)
     camera.lookat(0, 0, -1.0)
     camera.up(0, 0, 1)
-
-
 
 
 @ti.kernel
@@ -61,24 +56,31 @@ def update_free_end(free_end: ti.template()):
 def update_fixed_end(fixed_end: ti.template()):
     for i in cube1_vertex_origin:
         for j in ti.static(range(3)):
-            cube1_vertex_current[i][j] = cube1_vertex_origin[i][j] + fixed_end[j]
+            cube1_vertex_current[i][j] = cube1_vertex_origin[i][j] + \
+                fixed_end[j]
+
+
+def update_robot(fixed_end, free_end):
+    pass
+
 
 @ti.func
 def euclidean_dist(point_a, point_b) -> float:
 
-    d_square =  (point_a[0] - point_b[0]) * (point_a[0] - point_b[0]) +\
-                (point_a[1] - point_b[1]) * (point_a[1] - point_b[1]) +\
-                (point_a[2] - point_b[2]) * (point_a[2] - point_b[2])
+    d_square = (point_a[0] - point_b[0]) * (point_a[0] - point_b[0]) +\
+        (point_a[1] - point_b[1]) * (point_a[1] - point_b[1]) +\
+        (point_a[2] - point_b[2]) * (point_a[2] - point_b[2])
 
     d = ti.math.sqrt(d_square)
     return d
+
 
 @ti.kernel
 def update_cable():
     '''
     Update the cable position using Verlet Integration
     The cable is a chain of points, each point is connected to the next point
-    
+
     The end points are fixed to the cube
     The cube position is updated using the data captured from ROS
     '''
@@ -86,8 +88,9 @@ def update_cable():
     for i in ti.grouped(cable_cur_position):
         point_vel[i] = cable_cur_position[i] - cable_old_position[i]
         cable_old_position[i] = cable_cur_position[i]
-        G = ti.Vector([deltaTime*0,deltaTime*0.0,deltaTime*-9.8])
-        cable_cur_position[i] += (point_vel[i] + G) * 0.97 # Gravity Term needs to be verifiedc
+        G = ti.Vector([deltaTime*0, deltaTime*0.0, deltaTime*-9.8])
+        # Gravity Term needs to be verifiedc
+        cable_cur_position[i] += (point_vel[i] + G) * 0.97
 
     loop_count = 0
     while loop_count < 100:
@@ -100,11 +103,13 @@ def update_cable():
 
             if ti.math.isnan(first_seg[0]):
                 ti.TaichiTypeError("first_seg is nan")
-            
-            eu_dist = euclidean_dist(cable_cur_position[i],cable_cur_position[i+1])
+
+            eu_dist = euclidean_dist(
+                cable_cur_position[i], cable_cur_position[i+1])
             # print("eu_dist is :",eu_dist)
             error = eu_dist - seg_len
-            direction = (cable_cur_position[i+1] - cable_cur_position[i]) / eu_dist
+            direction = (cable_cur_position[i+1] -
+                         cable_cur_position[i]) / eu_dist
 
             # first_seg += error * 0.5 * direction
             # second_seg -= error * 0.5 * direction
@@ -112,8 +117,8 @@ def update_cable():
             cable_cur_position[i] += error * 0.5 * direction
             cable_cur_position[i+1] -= error * 0.5 * direction
 
-                # test whether the distance is corrected
-                # eu_dist = euclidean_dist(cable_cur_position[i],cable_cur_position[i+1])
+            # test whether the distance is corrected
+            # eu_dist = euclidean_dist(cable_cur_position[i],cable_cur_position[i+1])
 
 
 if __name__ == "__main__":
@@ -142,6 +147,18 @@ if __name__ == "__main__":
     gravity = [0, 0, -9.8]
     deltaTime = 0.01
 
+    # Define the robot end effector position
+    robot_init_pos = []
+    robot_seg_len = 2.5
+    robot_seg_dir = Vector3(0.1, 0, 0)
+    for i in range(6):
+        robot_init_pos.append(robot_seg_dir * i * robot_seg_len)
+
+    tolerance = 0.001  # tolerance for the fabrik algorithm
+
+    # Initialize the fabrik solver
+    fabrik_solver = Fabrik3D(robot_init_pos, tolerance, show_results=True)
+
     # Define the visualization process
     window = ti.ui.Window("Test for Drawing 3d-lines", (768, 768))
     canvas = window.get_canvas()
@@ -159,8 +176,6 @@ if __name__ == "__main__":
     x_axis[0], x_axis[1] = origin, [axis_length, 0, 0]
     y_axis[0], y_axis[1] = origin, [0, axis_length, 0]
     z_axis[0], z_axis[1] = origin, [0, 0, axis_length]
-
-
 
     # assign the initial value
     initialize()
@@ -182,6 +197,12 @@ if __name__ == "__main__":
                                               sorted_sub_.free_end_pose.transform.translation.z])
             update_free_end(free_end=cube_offset_free_end)
 
+            # call the fabrik solver to update the robot end effector position
+            fabrik_solver.move_to(Vector3(cube_offset_free_end[0],
+                                          cube_offset_free_end[1],
+                                          cube_offset_free_end[2]))
+            robot_curr_pos = fabrik_solver.angles
+
         if sorted_sub_.sorted_pointset is not None:
             # cube_offset_2 = ti.Vector([sorted_insub_.sorted_pointset[0]])
             cube_offset_fixed_end = ti.Vector([sorted_sub_.sorted_pointset.poses[0].position.x,
@@ -189,18 +210,20 @@ if __name__ == "__main__":
                                                sorted_sub_.sorted_pointset.poses[0].position.z])
             update_fixed_end(fixed_end=cube_offset_fixed_end)
 
-            optical_readings = ti.Vector.field(3, dtype=float, shape=len(sorted_sub_.sorted_pointset.poses))
+            optical_readings = ti.Vector.field(
+                3, dtype=float, shape=len(sorted_sub_.sorted_pointset.poses))
             for i in range(len(sorted_sub_.sorted_pointset.poses)):
-                optical_readings[i] = [ sorted_sub_.sorted_pointset.poses[i].position.x,
-                                        sorted_sub_.sorted_pointset.poses[i].position.y,
-                                        sorted_sub_.sorted_pointset.poses[i].position.z]
-            # Draw the optical readings
+                optical_readings[i] = [sorted_sub_.sorted_pointset.poses[i].position.x,
+                                       sorted_sub_.sorted_pointset.poses[i].position.y,
+                                       sorted_sub_.sorted_pointset.poses[i].position.z]
+            
+            # Uncomment the line below to draw the optical readings
             # scene.particles(optical_readings, color=(1, 1, 1), radius=0.05)
 
         update_cable()
         camera.track_user_inputs(
-                window, movement_speed=.03, hold_key=ti.ui.SPACE)
-        scene.set_camera(camera) 
+            window, movement_speed=.03, hold_key=ti.ui.SPACE)
+        scene.set_camera(camera)
         scene.ambient_light((1, 1, 1))
         scene.point_light(pos=(0.5, 1.5, 1.5), color=(0.1, 0.91, 0.91))
 
@@ -208,7 +231,6 @@ if __name__ == "__main__":
         scene.lines(x_axis, color=(1, 0, 0), width=0.05)
         scene.lines(y_axis, color=(0, 1, 0), width=0.05)
         scene.lines(z_axis, color=(0, 0, 1), width=0.05)
-
 
         # Draw 3d-lines in the scene
         scene.lines(cable_cur_position, color=(1, 1, 1), width=0.01)
