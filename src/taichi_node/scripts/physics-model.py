@@ -60,7 +60,8 @@ def update_fixed_end(fixed_end: ti.template()):
                 fixed_end[j]
 
 
-def update_robot(fixed_end, free_end):
+def update_robot():
+    
     pass
 
 
@@ -93,7 +94,7 @@ def update_cable():
         cable_cur_position[i] += (point_vel[i] + G) * 0.97
 
     loop_count = 0
-    while loop_count < 100:
+    while loop_count < 50:
         loop_count += 1
         cable_cur_position[0] = cube1_vertex_current[1]
         cable_cur_position[n-1] = cube2_vertex_current[1]
@@ -202,6 +203,7 @@ if __name__ == "__main__":
                                           cube_offset_free_end[1],
                                           cube_offset_free_end[2]))
             robot_curr_pos = fabrik_solver.angles
+            update_robot()
 
         if sorted_sub_.sorted_pointset is not None:
             # cube_offset_2 = ti.Vector([sorted_insub_.sorted_pointset[0]])

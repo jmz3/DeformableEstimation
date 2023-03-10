@@ -17,6 +17,7 @@ from typing import Union
 class FabrikBase:
     def __init__(
         self,
+        
         joint_positions: List[Union[Vector2, Vector3]],
         tolerance: float,
         show_results: bool = False
