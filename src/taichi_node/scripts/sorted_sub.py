@@ -13,6 +13,11 @@ class SortedSubscriber:
 
     def sorted_callback(self, msg):
         self.sorted_pointset = msg
+        for i in range(len(msg.poses)):
+            self.sorted_pointset.poses[i].position.x = .001 * msg.poses[i].position.x
+            self.sorted_pointset.poses[i].position.y = .001 * msg.poses[i].position.y
+            self.sorted_pointset.poses[i].position.z = .001 * msg.poses[i].position.z
+
 
     def free_end_callback(self, msg):
         self.free_end_pose = msg
