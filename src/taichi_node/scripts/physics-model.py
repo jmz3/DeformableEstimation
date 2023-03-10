@@ -7,6 +7,8 @@ sys.path.append(script_dir)
 
 
 from sorted_sub import SortedSubscriber
+from fabrik import Fabrik3D
+
 from geometry_msgs.msg import TransformStamped
 from geometry_msgs.msg import PoseArray
 import rospy
@@ -37,7 +39,7 @@ def initialize():
                                     scale * data[i][2] ]
 
     canvas.set_background_color((0.3, 0.3, 0.4))
-    camera.position(-2.5, 2.5, 2.5)
+    camera.position(2.5, -2.5, 2.5)
     camera.lookat(0, 0, -1.0)
     camera.up(0, 0, 1)
 
@@ -118,8 +120,8 @@ if __name__ == "__main__":
 
     ti.init(arch=ti.vulkan)  # Alternatively, ti.init(arch=ti.cpu)
 
-    n = 128
-    seg_len = 2 / n
+    n = 70
+    seg_len = 1.0 / n
 
     #######################################################################
     ########## Definition of the simulation environment ###################
@@ -185,29 +187,33 @@ if __name__ == "__main__":
             cube_offset_fixed_end = ti.Vector([sorted_sub_.sorted_pointset.poses[0].position.x,
                                                sorted_sub_.sorted_pointset.poses[0].position.y,
                                                sorted_sub_.sorted_pointset.poses[0].position.z])
-
-
             update_fixed_end(fixed_end=cube_offset_fixed_end)
+
+            optical_readings = ti.Vector.field(3, dtype=float, shape=len(sorted_sub_.sorted_pointset.poses))
+            for i in range(len(sorted_sub_.sorted_pointset.poses)):
+                optical_readings[i] = [ sorted_sub_.sorted_pointset.poses[i].position.x,
+                                        sorted_sub_.sorted_pointset.poses[i].position.y,
+                                        sorted_sub_.sorted_pointset.poses[i].position.z]
+            # Draw the optical readings
+            # scene.particles(optical_readings, color=(1, 1, 1), radius=0.05)
 
         update_cable()
         camera.track_user_inputs(
                 window, movement_speed=.03, hold_key=ti.ui.SPACE)
-        scene.set_camera(camera)
+        scene.set_camera(camera) 
         scene.ambient_light((1, 1, 1))
         scene.point_light(pos=(0.5, 1.5, 1.5), color=(0.1, 0.91, 0.91))
 
         # Draw the reference frame
         scene.lines(x_axis, color=(1, 0, 0), width=0.05)
         scene.lines(y_axis, color=(0, 1, 0), width=0.05)
-        scene.lines(z_axis, color=(0, 1, 1), width=0.05)
+        scene.lines(z_axis, color=(0, 0, 1), width=0.05)
 
 
         # Draw 3d-lines in the scene
         scene.lines(cable_cur_position, color=(1, 1, 1), width=0.01)
         scene.mesh(cube1_vertex_current, color=(1, 1, 1))
         scene.mesh(cube2_vertex_current, color=(1, 0, 0))
-        
-
 
         canvas.scene(scene)
         # gui.text("this is the text that I want to show")
