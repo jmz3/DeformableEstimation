@@ -7,7 +7,7 @@ import rospy
 from geometry_msgs.msg import PoseArray
 from geometry_msgs.msg import TransformStamped
 from vectormath import Vector3
-from fabrik import Fabrik3D
+# from fabrik.fabrikSolver import FabrikSolver3D
 from utilis import SortedSubscriber
 import os
 import sys
@@ -90,8 +90,8 @@ def update_cable():
         point_vel[i] = cable_cur_position[i] - cable_old_position[i]
         cable_old_position[i] = cable_cur_position[i]
         G = ti.Vector([deltaTime*0, deltaTime*0.0, deltaTime*-9.8])
-        # Gravity Term needs to be verifiedc
-        cable_cur_position[i] += (point_vel[i] + G) * 0.97
+        # Gravity Term needs to be verified
+        cable_cur_position[i] += (point_vel[i] + G) * 0.97/2.5
 
     loop_count = 0
     while loop_count < 50:
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     ti.init(arch=ti.vulkan)  # Alternatively, ti.init(arch=ti.cpu)
 
-    n = 70
+    n = 50
     seg_len = 1.0 / n
 
     #######################################################################
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     tolerance = 0.001  # tolerance for the fabrik algorithm
 
     # Initialize the fabrik solver
-    fabrik_solver = Fabrik3D(robot_init_pos, tolerance, show_results=True)
+    # fabrik_solver = Fabrik3D(robot_init_pos, tolerance, show_results=True)
 
     # Define the visualization process
     window = ti.ui.Window("Test for Drawing 3d-lines", (768, 768))
@@ -199,11 +199,11 @@ if __name__ == "__main__":
             update_free_end(free_end=cube_offset_free_end)
 
             # call the fabrik solver to update the robot end effector position
-            fabrik_solver.move_to(Vector3(cube_offset_free_end[0],
-                                          cube_offset_free_end[1],
-                                          cube_offset_free_end[2]))
-            robot_curr_pos = fabrik_solver.angles
-            update_robot()
+            # fabrik_solver.move_to(Vector3(cube_offset_free_end[0],
+            #                               cube_offset_free_end[1],
+            #                               cube_offset_free_end[2]))
+            # robot_curr_pos = fabrik_solver.angles
+            # update_robot()
 
         if sorted_sub_.sorted_pointset is not None:
             # cube_offset_2 = ti.Vector([sorted_insub_.sorted_pointset[0]])
