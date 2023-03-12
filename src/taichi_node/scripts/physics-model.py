@@ -21,12 +21,18 @@ def initialize():
     Initialize the cable points and the cube position    
     '''
 
+    # Initialize the cable points
     for i in range(n):
         cable_cur_position[i] = [i * seg_len, 0.0, 0.0]
         cable_old_position[i] = [i * seg_len, 0.0, 0.0]
         point_vel[i] = [0.0, 0.0, 0.0]
 
-    scale = 0.05
+    # Initialize the visualization index for the cable
+    for i in range(n - 1):
+        cable_viz_index[2*i + 0] = i
+        cable_viz_index[2*i + 1] = i + 1
+
+    scale = 0.02
     for i in range(len(data)):
         cube1_vertex_origin[i] = [scale * data[i][0],
                                   scale * data[i][1],
@@ -127,7 +133,7 @@ if __name__ == "__main__":
     ti.init(arch=ti.vulkan)  # Alternatively, ti.init(arch=ti.cpu)
 
     n = 50
-    seg_len = 1.0 / n
+    seg_len = 2.0 / n
 
     #######################################################################
     ########## Definition of the simulation environment ###################
@@ -135,6 +141,7 @@ if __name__ == "__main__":
     # Define cable properties
     cable_cur_position = ti.Vector.field(3, dtype=float, shape=n)
     cable_old_position = ti.Vector.field(3, dtype=float, shape=n)  # 3 x n x 1
+    cable_viz_index = ti.field(dtype=int, shape=(2 * n))
     point_vel = ti.Vector.field(3, dtype=float, shape=n)
 
     # Define end position
@@ -161,7 +168,7 @@ if __name__ == "__main__":
     # fabrik_solver = Fabrik3D(robot_init_pos, tolerance, show_results=True)
 
     # Define the visualization process
-    window = ti.ui.Window("Test for Drawing 3d-lines", (768, 768))
+    window = ti.ui.Window("Test for Drawing 3D-lines", (768, 768))
     canvas = window.get_canvas()
     scene = ti.ui.Scene()
     camera = ti.ui.Camera()
@@ -235,7 +242,7 @@ if __name__ == "__main__":
         scene.lines(z_axis, color=(0, 0, 1), width=0.05)
 
         # Draw 3d-lines in the scene
-        scene.lines(cable_cur_position, color=(1, 1, 1), width=0.01)
+        scene.lines(cable_cur_position, indices= cable_viz_index,color=(1, 1, 1), width=0.01)
         scene.mesh(cube1_vertex_current, color=(1, 1, 1))
         scene.mesh(cube2_vertex_current, color=(1, 0, 0))
 

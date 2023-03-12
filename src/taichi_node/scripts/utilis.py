@@ -34,12 +34,14 @@ class robot_pos():
     ik is a function that uses the end effector position to calculate the robot's joint angles
 
     '''
-    def __init__(self, seg_len: float, seg_dir: list) -> None:
+    def __init__(self, seg_len: float, seg_dir: list, robot_base: list) -> None:
 
         self.seg_len = seg_len # length of each segment
         self.seg_dir = seg_dir # direction of each segment
         self.robot = FabrikSolver3D()
+        self.robot.basePoint = robot_base # base position of the robot
         
+        self.robot_init()
         # self.sub_robot = rospy.Subscriber("/robot_pose", TransformStamped, self.robot_callback)
         pass
 
@@ -48,21 +50,26 @@ class robot_pos():
         Initialize the robot's position and orientation
         '''
         for i in range(len(self.seg_dir)):
-            self.robot.addSegment(self.seg_dir[i][0], self.seg_dir[i][1], self.seg_dir[i][2])
+            self.robot.addSegment(self.seg_len, 0.0, 0.0)
+
+        
+        
 
     def fk(self):
         pass
 
-    def ik(self):
+    def ik(self, target: list):
         '''
         inverse kinematics implementation is done using the fabrik algorithm
         '''
+        self.robot.compute(target[0], target[1], target[2])
+
         pass
 
 def distance(x,y,z):
     return np.sqrt(x**2 + y**2 + z**2)
 
-if __name__ == "__main__":
+def test_fab():
     arm = FabrikSolver3D()
 
     arm.addSegment(0.25, 0.0, 0.0)
@@ -101,5 +108,33 @@ if __name__ == "__main__":
         # print(segment.point)
 
     ax.plot3D(x, y, z, 'red')
-
     arm.plot()
+    
+
+if __name__ == "__main__":
+    # test_fab()
+    robot = robot_pos(0.5, [0,0,0,0,0], [0.20,0.20,0.20])
+    robot.ik([1.1,2.1,1.1])
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+
+    # robot.robot.plot()
+
+    x ,y, z = [],[],[]
+    x.append(robot.robot.basePoint[0])
+    y.append(robot.robot.basePoint[1])
+    z.append(robot.robot.basePoint[2])
+    for segment in robot.robot.segments:
+        x.append(segment.point[0])
+        y.append(segment.point[1])
+        z.append(segment.point[2])
+        print(distance(x[-1] - x[-2], y[-1] - y[-2], z[-1] - z[-2]))
+        # print(segment.point)
+
+    ax.plot3D(x, y, z, 'gray')
+
+    plt.show()
+    # ax.plot3D(x, y, z, 'red')
+    # arm.plot()
+
