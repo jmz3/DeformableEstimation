@@ -7,7 +7,7 @@ import rospy
 from geometry_msgs.msg import PoseArray
 from geometry_msgs.msg import TransformStamped
 from vectormath import Vector3
-# from fabrik.fabrikSolver import FabrikSolver3D
+from utilis import VirtualRobot
 from utilis import SortedSubscriber
 import os
 import sys
@@ -29,8 +29,12 @@ def initialize():
 
     # Initialize the visualization index for the cable
     for i in range(n - 1):
-        cable_viz_index[2*i + 0] = i
-        cable_viz_index[2*i + 1] = i + 1
+        cable_viz_idx[2*i + 0] = i
+        cable_viz_idx[2*i + 1] = i + 1
+
+    for i in range(link_num + 1 - 1):
+        robot_joint_idx[2*i + 0] = i
+        robot_joint_idx[2*i + 1] = i + 1
 
     scale = 0.02
     for i in range(len(data)):
@@ -141,7 +145,7 @@ if __name__ == "__main__":
     # Define cable properties
     cable_cur_position = ti.Vector.field(3, dtype=float, shape=n)
     cable_old_position = ti.Vector.field(3, dtype=float, shape=n)  # 3 x n x 1
-    cable_viz_index = ti.field(dtype=int, shape=(2 * n))
+    cable_viz_idx = ti.field(dtype=int, shape=(2 * n))
     point_vel = ti.Vector.field(3, dtype=float, shape=n)
 
     # Define end position
@@ -156,16 +160,13 @@ if __name__ == "__main__":
     deltaTime = 0.01
 
     # Define the robot end effector position
-    robot_init_pos = []
-    robot_seg_len = 2.5
-    robot_seg_dir = Vector3(0.1, 0, 0)
-    for i in range(6):
-        robot_init_pos.append(robot_seg_dir * i * robot_seg_len)
-
+    link_num = 5
+    robot_joint_pos = ti.Vector.field(3, dtype=float, shape=link_num + 1 )
+    robot_joint_idx = ti.field(dtype=int, shape=(2 * (link_num + 1)))
+    robot_seg_len = 0.4
+    robot_seg_dir = link_num * [ 0.0 ]
     tolerance = 0.001  # tolerance for the fabrik algorithm
-
-    # Initialize the fabrik solver
-    # fabrik_solver = Fabrik3D(robot_init_pos, tolerance, show_results=True)
+    robot = VirtualRobot(seg_len=robot_seg_len, seg_dir=robot_seg_dir, robot_base=[0.5, -0.0, -2.6]) # Initialize the fabrik solver
 
     # Define the visualization process
     window = ti.ui.Window("Test for Drawing 3D-lines", (768, 768))
@@ -181,9 +182,11 @@ if __name__ == "__main__":
     y_axis = ti.Vector.field(3, dtype=float, shape=2)
     z_axis = ti.Vector.field(3, dtype=float, shape=2)
 
-    x_axis[0], x_axis[1] = origin, [axis_length, 0, 0]
+    x_axis[0], x_axis[1] = origin, [axis_length, 0, 0]  
     y_axis[0], y_axis[1] = origin, [0, axis_length, 0]
     z_axis[0], z_axis[1] = origin, [0, 0, axis_length]
+    # Draw the reference frame
+
 
     # assign the initial value
     initialize()
@@ -200,24 +203,23 @@ if __name__ == "__main__":
         if sorted_sub_.free_end_pose is not None:
             # print("value in main loop: " + str(sorted_sub_.free_end_pose.transform.translation.x))
             # x = ti.float64(free_end_pose.transform.translation.x)
-            cube_offset_free_end = ti.Vector([sorted_sub_.free_end_pose.transform.translation.x,
-                                              sorted_sub_.free_end_pose.transform.translation.y,
-                                              sorted_sub_.free_end_pose.transform.translation.z])
-            update_free_end(free_end=cube_offset_free_end)
+            free_end_position = ti.Vector([ sorted_sub_.free_end_pose.transform.translation.x,
+                                            sorted_sub_.free_end_pose.transform.translation.y,
+                                            sorted_sub_.free_end_pose.transform.translation.z])
+            update_free_end(free_end=free_end_position)
 
             # call the fabrik solver to update the robot end effector position
-            # fabrik_solver.move_to(Vector3(cube_offset_free_end[0],
-            #                               cube_offset_free_end[1],
-            #                               cube_offset_free_end[2]))
-            # robot_curr_pos = fabrik_solver.angles
-            # update_robot()
+            x, y, z = robot.ik([free_end_position[0], free_end_position[1], free_end_position[2]], returnFlag=True)
+            for i in range(len(x)):
+                robot_joint_pos[i] = [x[i], y[i], z[i]]
+
 
         if sorted_sub_.sorted_pointset is not None:
             # cube_offset_2 = ti.Vector([sorted_insub_.sorted_pointset[0]])
-            cube_offset_fixed_end = ti.Vector([sorted_sub_.sorted_pointset.poses[0].position.x,
-                                               sorted_sub_.sorted_pointset.poses[0].position.y,
-                                               sorted_sub_.sorted_pointset.poses[0].position.z])
-            update_fixed_end(fixed_end=cube_offset_fixed_end)
+            fix_end_position = ti.Vector([  sorted_sub_.sorted_pointset.poses[0].position.x,
+                                            sorted_sub_.sorted_pointset.poses[0].position.y,
+                                            sorted_sub_.sorted_pointset.poses[0].position.z])
+            update_fixed_end(fixed_end=fix_end_position)
 
             optical_readings = ti.Vector.field(
                 3, dtype=float, shape=len(sorted_sub_.sorted_pointset.poses))
@@ -236,13 +238,16 @@ if __name__ == "__main__":
         scene.ambient_light((1, 1, 1))
         scene.point_light(pos=(0.5, 1.5, 1.5), color=(0.1, 0.91, 0.91))
 
+        
         # Draw the reference frame
         scene.lines(x_axis, color=(1, 0, 0), width=0.05)
         scene.lines(y_axis, color=(0, 1, 0), width=0.05)
         scene.lines(z_axis, color=(0, 0, 1), width=0.05)
 
         # Draw 3d-lines in the scene
-        scene.lines(cable_cur_position, indices= cable_viz_index,color=(1, 1, 1), width=0.01)
+        scene.lines(cable_cur_position, indices= cable_viz_idx, color=(1, 1, 1), width=0.01)
+        scene.lines(robot_joint_pos, indices= robot_joint_idx, color=(1, 0.67, 0.0), width= 5.0 )
+        scene.particles(robot_joint_pos, color=(1, 1, 1), radius=0.05)
         scene.mesh(cube1_vertex_current, color=(1, 1, 1))
         scene.mesh(cube2_vertex_current, color=(1, 0, 0))
 

@@ -27,18 +27,32 @@ class SortedSubscriber:
         self.free_end_pose = msg
 
 
-class robot_pos():
+class VirtualRobot():
     '''
     robot_pos is a class that contains the robot's current position and orientation
     fk is a function that uses the robot's joint angles to calculate the end effector position
     ik is a function that uses the end effector position to calculate the robot's joint angles
 
     '''
-    def __init__(self, seg_len: float, seg_dir: list, robot_base: list) -> None:
+    def __init__(
+            self, 
+            seg_len: float, 
+            seg_dir: list, 
+            robot_base: list
+            ) -> None:
+        
+        '''
+        Param
+        ----------------
+        seg_len: a list of the robot's segment lengths
+        seg_dir: a list of the robot's segment directions
+        robot_base: a list of the robot's base position
+
+        '''
 
         self.seg_len = seg_len # length of each segment
         self.seg_dir = seg_dir # direction of each segment
-        self.robot = FabrikSolver3D()
+        self.robot = FabrikSolver3D(marginOfError=0.001)
         self.robot.basePoint = robot_base # base position of the robot
         
         self.robot_init()
@@ -51,20 +65,43 @@ class robot_pos():
         '''
         for i in range(len(self.seg_dir)):
             self.robot.addSegment(self.seg_len, 0.0, 0.0)
-
-        
         
 
     def fk(self):
         pass
 
-    def ik(self, target: list):
+    def ik(self, target: list, returnFlag: bool = False) ->list:
         '''
         inverse kinematics implementation is done using the fabrik algorithm
+
+        Param
+        ----------------
+        target:  is a list of the end effector's position
+        returnFlag: if true, return the robot's joint positions
+
+        Return
+        ----------------
+        a list of the robot's joint angles
+
         '''
         self.robot.compute(target[0], target[1], target[2])
 
-        pass
+        if returnFlag:
+            x ,y, z = [],[],[]
+            x.append(self.robot.basePoint[0])
+            y.append(self.robot.basePoint[1])
+            z.append(self.robot.basePoint[2])
+
+            for segment in self.robot.segments:
+                x.append(segment.point[0])
+                y.append(segment.point[1])
+                z.append(segment.point[2])
+
+            return x, y, z
+        
+        else:
+            return None
+
 
 def distance(x,y,z):
     return np.sqrt(x**2 + y**2 + z**2)
@@ -113,7 +150,7 @@ def test_fab():
 
 if __name__ == "__main__":
     # test_fab()
-    robot = robot_pos(0.5, [0,0,0,0,0], [0.20,0.20,0.20])
+    robot = VirtualRobot(0.5, [0,0,0,0,0], [0.20,0.20,0.20])
     robot.ik([1.1,2.1,1.1])
 
     fig = plt.figure()

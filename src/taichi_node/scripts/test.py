@@ -28,4 +28,7 @@ def main():
         print(segment.point)
 
 if __name__=="__main__":
-    main()
+    # main()
+    x = [0.0]
+    y = 6*x
+    print(y)
