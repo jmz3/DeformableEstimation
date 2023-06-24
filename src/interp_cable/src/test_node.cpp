@@ -7,7 +7,7 @@ namespace plt = matplotlibcpp;
 int main()
 {
 
-    std::vector<double> X = linspace(0, 1, 5); // must be increasing
+    std::vector<double> X = Linspace(0, 1, 5); // must be increasing
     std::vector<double> Y = {0.0, 1.0, 2.0, 1.0, 0.0};
     // for (auto x : t){
     //     std::cout << x << std::endl;
@@ -26,7 +26,7 @@ int main()
 
     std::vector<double> plot_x;
     std::vector<double> plot_y;
-    auto fine_t = linspace(0, 1, n);
+    auto fine_t = Linspace(0, 1, n);
     for (int i = 0; i < n; i++)
     {
         std::cout << fine_t[i] << std::endl;
