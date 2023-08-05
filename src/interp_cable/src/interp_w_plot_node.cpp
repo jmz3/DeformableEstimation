@@ -14,7 +14,6 @@
 namespace plt = matplotlibcpp;
 const long fg = plt::figure();
 
-
 std::vector<std::vector<double>> OpticalReading;
 std::vector<double> startN; // Known normal vector for the starting
 std::vector<double> startP; // Known starting point coordinates
@@ -28,7 +27,6 @@ double theta_max = M_PI;
 double theta_min = 0.0;
 double dL = 200;
 double sigma = 0.25 * dL;
-
 
 void NDI_point_callback(const geometry_msgs::PoseArray &p)
 {
@@ -81,13 +79,13 @@ void NDI_pointer_callback(const geometry_msgs::TransformStamped &pointer)
                          pointer.transform.rotation.x,
                          pointer.transform.rotation.y,
                          pointer.transform.rotation.z);
-    
+
     Eigen::Matrix3d m = q.toRotationMatrix();
     for (int i = 0; i < 3; i++)
     {
         // take the first column of the rotation matrix
         // which is the direction vector of x-axis of the pointer frame
-        endN.push_back(m(i,0)); 
+        endN.push_back(m(i, 0));
     }
 };
 
@@ -131,13 +129,13 @@ int main(int argc, char **argv)
 
     sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/Sorted", 10);
     interp_pub_ = nh.advertise<geometry_msgs::PoseArray>("/Interp", 10);
+    interp_output.header.frame_id = "NDI";
 
     set_direction();
     set_startpoint();
-    ROS_ASSERT( startP.size() == 3);
+    ROS_ASSERT(startP.size() == 3);
 
     ros::Rate rate(100);
-    
 
     while (nh.ok())
     {
@@ -162,7 +160,7 @@ int main(int argc, char **argv)
 
             // Publish the result
             geometry_msgs::Pose p_temp;
-            
+
             // std::cout << "Optical Reading has " << OpticalReading.size() << " points \n";
             for (int i = 0; i < OpticalReading.size(); i++)
             {
@@ -176,7 +174,6 @@ int main(int argc, char **argv)
                 //   << sorted_output.poses[i].position.z << std::endl;
             }
             // std::cout << "sorted_output has " << sorted_output.poses.size() << " points \n";
-            
 
             ////////////////////////////////////////////////////////////////////////////
             ///////// Plot Using Matplotlib-cpp Bridge//////////////////////////////////
@@ -267,7 +264,7 @@ int main(int argc, char **argv)
             plot_y.clear();
             plot_z.clear();
 
-            for (int k=0; k<PlotSet[0].size(); k++)
+            for (int k = 0; k < PlotSet[0].size(); k++)
             {
                 p_temp.position.x = PlotSet[0][k];
                 p_temp.position.y = PlotSet[1][k];
@@ -276,7 +273,7 @@ int main(int argc, char **argv)
                 interp_output.poses.push_back(p_temp);
             }
 
-            ROS_INFO_STREAM("The published data has the length "<< interp_output.poses.size());
+            ROS_INFO_STREAM("The published data has the length " << interp_output.poses.size());
             sorted_pub_.publish(sorted_output);
             interp_pub_.publish(interp_output);
 
