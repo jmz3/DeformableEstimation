@@ -24,3 +24,6 @@ Of course there is another more elegant way of doing this, which is install ros-
 
 ### 2023 03 06
 Need to register physics engine frame and the optical tracker frame
+
+### 2023 06 05
+Try to solve the 4 point scenario in 2D plane with no prior knowledge about the direction of any point.
