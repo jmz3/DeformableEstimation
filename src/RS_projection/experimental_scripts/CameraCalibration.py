@@ -23,10 +23,10 @@ def aruco_transformation_matrix(P_x, P_y, P_z, Q_x, Q_y, Q_z, Q_w):
 
 if __name__ == "__main__":
     #initial four points in the order
-    point1 = np.array([0.3280,   -0.1807,   -1.2046])
-    point2 = np.array([0.2755,   -0.2966,   -1.2392])
-    point3 = np.array([0.3714,   -0.3596,   -1.1693])
-    point4 = np.array([0.4222,   -0.2418,   -1.1364])
+    point1 = np.array([0.1850,   -0.0551,   -1.2404])
+    point2 = np.array([0.2228,    0.0678,   -1.2119])
+    point3 = np.array([0.1136,    0.1146,   -1.2725])
+    point4 = np.array([0.0784,   -0.0092,   -1.2983])
 
     #calculate the center point 
     center_point = (point1 + point2 + point3 + point4) /4
@@ -59,13 +59,13 @@ if __name__ == "__main__":
     print("determin: ", np.linalg.det(matrix_NDI))
 
     #find the transformation from NDI optical tracker to real sense
-    P_x = 0.06225386634469032
-    P_y = 0.04125925153493881
-    P_z = 1.161189317703247
-    Q_x = -0.18994659555068058
-    Q_y = 0.8989514490782712
-    Q_z = -0.3841635665678487
-    Q_w = -0.09602600151852651
+    P_x = 0.009141292423009872
+    P_y = 0.032449230551719666
+    P_z = 0.8945698738098145
+    Q_x = -0.6617885447981704
+    Q_y = 0.6834627280713695
+    Q_z = -0.22208728048439078
+    Q_w = -0.21352250738085848
     matrix_rs = aruco_transformation_matrix(P_x, P_y, P_z, Q_x, Q_y, Q_z, Q_w)
     print(matrix_rs)
     matrix_NDI_rs = np.matmul(matrix_NDI, np.linalg.inv(matrix_rs))
@@ -78,13 +78,13 @@ if __name__ == "__main__":
     else:
         print("error value")
 
-    exam_point = np.array([0.23961, -0.20712, -1.06489])
+    exam_point = np.array([0.07848, -0.06649, -1.11854])
     tool_tip = np.array([-0.1666, 0.0008, -0.0009])
-    trans_matrix = aruco_transformation_matrix(0, 0, 0, 0.39912961, -0.0869064, 0.9111676, 0.054004)
+    trans_matrix = aruco_transformation_matrix(0, 0, 0, 0.322731869732042, -0.4045399482696, 0.825181486569, 0.2264223591798)
     roation_matrix = np.array([[trans_matrix[0][0], trans_matrix[0][1], trans_matrix[0][2]], [trans_matrix[1][0], trans_matrix[1][1], trans_matrix[1][2]], [trans_matrix[2][0], trans_matrix[2][1], trans_matrix[2][2]]])
     new_tip = roation_matrix.dot(np.transpose(tool_tip)) + np.transpose(exam_point)
     new_exam_point = matrix_rs_NDI.dot(np.append(new_tip, 1))
     # point_RS = matrix_NDI_rs.dot(new_exam_point)
     print(new_exam_point)
     print(np.linalg.norm(new_exam_point[0:3]))
-    print(np.linalg.norm([0.051481641829013824, 0.00020094394858460873, 1.2004473209381104]))
+    print(np.linalg.norm([0.09817775338888168, -0.037160724401474, 0.9384751915931702]))
