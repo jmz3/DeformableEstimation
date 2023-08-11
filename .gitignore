@@ -142,3 +142,8 @@ cmake-build-debug/
 cmake-build-release/
 .VSCodeCounter/
 
+# ROS data
+*.bag
+**.bag
+
+

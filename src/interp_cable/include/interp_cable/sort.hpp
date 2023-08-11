@@ -6,39 +6,39 @@ namespace Cable
     class Sort
     {
     private:
-        double theta_max, theta_min, dL;
-        double sigma;
-        bool include_start;
+        double theta_max_, theta_min_, delta_length_;
+        double sigma_;
+        bool include_start_;
 
-        std::vector<double> TempPosition; // Temporary point tuple of (x,y,z)
-        std::vector<double> StartP, StartN;
-        std::vector<double> Prob; // The probability list for all possible choices
+        std::vector<double> temp_position_; // Temporary point tuple of (x,y,z)
+        std::vector<double> start_point_, start_normal_;
+        std::vector<double> prob_; // The probability list for all possible choices
 
         // There are two vectors: n and dp,
         // n is the normal direction of the previous cable
         // dp is the vector that connects the pi and pi+1
         // the angle between these two vectors can be found by inner product
-        std::vector<std::vector<double>> Direction;
-        std::vector<double> PositionalDiff;
-        std::vector<double> Normal;
-        double rot_angle; // Rotational angle between direction vector at pi and direction vector at pi+1
-        double theta; // angle between direction vector at pi and difference vector of (pi+1 - pi)
-        double mean;
+        std::vector<std::vector<double>> direction_;
+        std::vector<double> positional_diff_;
+        std::vector<double> normal_;
+        double rot_angle_; // Rotational angle between direction vector at pi and direction vector at pi+1
+        double theta_; // angle between direction vector at pi and difference vector of (pi+1 - pi)
+        double mean_;
 
     public:
-        Sort(double theta_max, double theta_min, double dL, double sigma,
-             std::vector<double> StartP, std::vector<double> StartN, bool include_start);
+        Sort(double theta_max, double theta_min, double delta_length, double sigma,
+             std::vector<double> start_point, std::vector<double> start_normal, bool include_start);
         ~Sort();
 
-        double fangle(std::vector<double> &a, std::vector<double> &b); // Angle between two vectors
-        void init(std::vector<std::vector<double>> &ps);  // Initialize the arguments
-        void fsort(std::vector<std::vector<double>> &ps); // sort the input data v based on the sorting algorithm
-        double fnorm(std::vector<double> &a); // Norm calculator
-        double fdot(std::vector<double> &a, std::vector<double> &b);
+        double Angle(std::vector<double> &v1, std::vector<double> &v2); // Angle between two vectors
+        void Init(std::vector<std::vector<double>> &point_set);  // Initialize the arguments
+        void SortPoints(std::vector<std::vector<double>> &point_set); // sort the input data v based on the sorting algorithm
+        double Norm(std::vector<double> &v); // Norm calculator
+        double Dot(std::vector<double> &v1, std::vector<double> &v2);
 
 
-        void fscale(std::vector<double> &a, double s);
-        std::vector<double> frodriguez(std::vector<double> &origin, std::vector<double> &axis, double angle);
-        std::vector<double> fcross(std::vector<double> &a, std::vector<double> &b);
+        void Scale(std::vector<double> &v, double scalar);
+        std::vector<double> Rodriguez(std::vector<double> &origin, std::vector<double> &axis, double angle);
+        std::vector<double> Cross(std::vector<double> &v1, std::vector<double> &v2);
     };
 }
