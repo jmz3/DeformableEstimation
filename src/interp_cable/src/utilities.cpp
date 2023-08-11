@@ -1,35 +1,35 @@
 #include <interp_cable/utilities.hpp>
 
-vector<double> linspace(double start, double end, int n) {
+vector<double> Linspace(double start, double end, int num) {
     vector<double> result;
-    double step = (end - start) / (n - 1);
-    for (int i = 0; i < n; i++) {
+    double step = (end - start) / (num - 1);
+    for (int i = 0; i < num; i++) {
         result.push_back(start + step * i);
     }
     return result;
 }
 
-int find_closest_point(vector<vector<double>> &pointset, vector<double> &point) {
-    int index = 0;
-    double min_dist = 1e10;
+int FindClosestPoint(vector<vector<double>> &pointset, vector<double> &point) {
+    int kIndex = 0;
+    double kMin_dist = 1e10;
     for (int i = 0; i < pointset.size(); i++) {
-        double dist = 0;
+        double kDist = 0;
         for (int j = 0; j < pointset[i].size(); j++) {
-            dist += pow(pointset[i][j] - point[j], 2);
+            kDist += pow(pointset[i][j] - point[j], 2);
         }
-        if (dist < min_dist) {
-            min_dist = dist;
-            index = i;
+        if (kDist < kMin_dist) {
+            kMin_dist = kDist;
+            kIndex = i;
         }
     }
-    return index;
+    return kIndex;
 }
 
-void printv(vector<double> &a)
+void PrintVector(vector<double> &v)
 {
-    for (int i = 0; i < a.size(); i++)
+    for (int i = 0; i < v.size(); i++)
     {
-        cout << a[i] << ", ";
+        cout << v[i] << ", ";
     }
     cout << endl;
 }

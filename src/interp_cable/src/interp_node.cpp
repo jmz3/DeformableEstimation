@@ -12,24 +12,24 @@
 
 using namespace std::this_thread;
 
-std::vector<std::vector<double>> OpticalReading;
-std::vector<double> startN; // Known normal vector for the starting
-std::vector<double> startP; // Known starting point coordinates
-std::vector<double> endN;   // Known normal vector for the ending
+std::vector<std::vector<double>> optical_reading;
+std::vector<double> start_normal; // Known normal vector for the starting
+std::vector<double> start_point;  // Known starting point coordinates
+std::vector<double> end_normal;   // Known normal vector for the ending
 
 geometry_msgs::PoseArray sorted_output;
 geometry_msgs::PoseArray interp_output;
 
 int num_of_markers = 0;
-double theta_max = M_PI;
-double theta_min = 0.0;
-double dL = 200;
-double sigma = 0.25 * dL;
+double kThetaMax = M_PI;
+double kThetaMin = 0.0;
+double kDeltaLength = 200;
+double kSigma = 0.25 * kDeltaLength;
 
 // callback function to get the NDI point array of stray markers
-void NDI_point_callback(const geometry_msgs::PoseArray &p)
+void PointArrayCallback(const geometry_msgs::PoseArray &p)
 {
-    OpticalReading.clear();
+    optical_reading.clear();
     std::vector<double> temp; // Temporary point tuple of (x,y,z)
     //------------------------------------------------------------------------------
     // extract the coordinates form the pose array
@@ -37,61 +37,62 @@ void NDI_point_callback(const geometry_msgs::PoseArray &p)
     for (int i = 0; i < p.poses.size(); i++)
     {
         // std::cout<<"arrive here\n";
+        // times 1000 to transfer the unit from meter back to mm
         temp.push_back(1000 * p.poses[i].position.x);
         temp.push_back(1000 * p.poses[i].position.y);
-        temp.push_back(1000 * p.poses[i].position.z); // times 1000 to transfer the unit from meter back to mm
-        OpticalReading.push_back(temp);
+        temp.push_back(1000 * p.poses[i].position.z);
+        optical_reading.push_back(temp);
         temp.clear();
     }
 
-    if (OpticalReading.size() >= 1)
+    if (optical_reading.size() >= 1)
     {
         ROS_INFO("Poses are caught!");
     }
 };
 
-void NDI_vector_callback(const geometry_msgs::Pose &v)
+void VectorCallback(const geometry_msgs::Pose &v)
 {
-    startN.clear();
-    startN.push_back(v.position.x);
-    startN.push_back(v.position.y);
-    startN.push_back(v.position.z);
+    start_normal.clear();
+    start_normal.push_back(v.position.x);
+    start_normal.push_back(v.position.y);
+    start_normal.push_back(v.position.z);
 };
 
-void NDI_pointer_callback(const geometry_msgs::TransformStamped &pointer)
+void PointerDirectionCallback(const geometry_msgs::TransformStamped &pointer)
 {
     // Find the direction of the pointer
     // the direction of the cable is the direction of x-axis of the pointer
-    endN.clear();
-    Eigen::Quaterniond q(pointer.transform.rotation.w,
-                         pointer.transform.rotation.x,
-                         pointer.transform.rotation.y,
-                         pointer.transform.rotation.z);
+    end_normal.clear();
+    Eigen::Quaterniond quaternion(pointer.transform.rotation.w,
+                                  pointer.transform.rotation.x,
+                                  pointer.transform.rotation.y,
+                                  pointer.transform.rotation.z);
 
-    Eigen::Matrix3d m = q.toRotationMatrix();
+    Eigen::Matrix3d matrix = quaternion.toRotationMatrix();
     for (int i = 0; i < 3; i++)
     {
         // take the first column of the rotation matrix
         // which is the direction vector of x-axis of the pointer frame
-        endN.push_back(m(i, 0));
+        end_normal.push_back(matrix(i, 0));
     }
 };
 
 // manually set the start point and direction
-void set_startpoint()
+void SetStartPoint()
 {
-    startP.clear();
-    startP.push_back(-290.720);
-    startP.push_back(-382.160);
-    startP.push_back(-943.160);
+    start_point.clear();
+    start_point.push_back(-290.720);
+    start_point.push_back(-382.160);
+    start_point.push_back(-943.160);
 }
 
-void set_direction()
+void SetDirection()
 {
-    startN.clear();
-    startN.push_back(377.1 - 382.0);
-    startN.push_back(-1.8 - (-46.1));
-    startN.push_back(-1090.6 - (-1070.6));
+    start_normal.clear();
+    start_normal.push_back(377.1 - 382.0);
+    start_normal.push_back(-1.8 - (-46.1));
+    start_normal.push_back(-1090.6 - (-1070.6));
 };
 
 int main(int argc, char **argv)
@@ -100,11 +101,11 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------------------
     ros::init(argc, argv, "Sorting");
     ros::NodeHandle nh;
-    ros::Subscriber NDI_point_sub_;
-    ros::Subscriber NDI_vector_sub_;
-    ros::Subscriber NDI_pointer_sub_;
-    ros::Publisher sorted_pub_;
-    ros::Publisher interp_pub_;
+    ros::Subscriber point_sub;
+    ros::Subscriber vector_sub;
+    ros::Subscriber direction_sub;
+    ros::Publisher sorted_pub;
+    ros::Publisher interp_pub;
 
     // Initialize object for storing the reading
     //------------------------------------------------------------------------------
@@ -112,17 +113,17 @@ int main(int argc, char **argv)
 
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
-    NDI_point_sub_ = nh.subscribe("/NDI/measured_cp_array", 1, NDI_point_callback);
+    point_sub = nh.subscribe("/NDI/measured_cp_array", 1, PointArrayCallback);
 
     //------------------------------------------------------------------------------
     // Subscribe to the pointer to get the info of the end point
-    NDI_pointer_sub_ = nh.subscribe("/NDI/PointerNew/measured_cp", 1, NDI_pointer_callback);
-    sorted_pub_ = nh.advertise<geometry_msgs::PoseArray>("/Sorted", 1);
-    interp_pub_ = nh.advertise<geometry_msgs::PoseArray>("/Interp", 1);
+    direction_sub = nh.subscribe("/NDI/PointerNew/measured_cp", 1, PointerDirectionCallback);
+    sorted_pub = nh.advertise<geometry_msgs::PoseArray>("/Sorted", 1);
+    interp_pub = nh.advertise<geometry_msgs::PoseArray>("/Interp", 1);
 
-    set_direction();
-    set_startpoint();
-    ROS_ASSERT(startP.size() == 3);
+    SetDirection();
+    SetStartPoint();
+    ROS_ASSERT(start_point.size() == 3);
 
     ros::Rate rate(100);
 
@@ -134,26 +135,26 @@ int main(int argc, char **argv)
         {
             nh.setParam("/ReadingCatched", false);
             ROS_INFO("No markers detected!");
-            break; 
+            break;
         }
 
         //------------------------------------------------------------------------------
         // sort the points here
-        if (NDI_point_sub_.getNumPublishers() != 0 &&
-            OpticalReading.size() != 0 &&
-            OpticalReading.size() == num_of_markers)
+        if (point_sub.getNumPublishers() != 0 &&
+            optical_reading.size() != 0 &&
+            optical_reading.size() == num_of_markers)
         // check if the subscriber is connected, and the number of points is correct
         {
             nh.setParam("/ReadingCatched", true);
-            set_startpoint(); // set the start point to the first point of the cable
-            Cable::Sort sort(theta_max, theta_min, dL, sigma, startP, startN, false);
-            sort.fsort(OpticalReading);
+            SetStartPoint(); // set the start point to the first point of the cable
+            Cable::Sort sort(kThetaMax, kThetaMin, kDeltaLength, kSigma, start_point, start_normal, false);
+            sort.SortPoints(optical_reading);
 
-            for (int i = 0; i < OpticalReading.size(); i++)
+            for (int i = 0; i < optical_reading.size(); i++)
             {
-                reading_x.push_back(OpticalReading[i][0]);
-                reading_y.push_back(OpticalReading[i][1]);
-                reading_z.push_back(OpticalReading[i][2]);
+                reading_x.push_back(optical_reading[i][0]);
+                reading_y.push_back(optical_reading[i][1]);
+                reading_z.push_back(optical_reading[i][2]);
             }
 
             ////////////////////////////////////////////////////////////////////////////
@@ -162,10 +163,9 @@ int main(int argc, char **argv)
             std::vector<std::vector<double>> interp_set;
             std::vector<double> interp_obj;
             std::vector<double> interp_result;
-            auto interp_space = linspace(0.0, 1.0, reading_x.size());
+            auto interp_space = Linspace(0.0, 1.0, reading_x.size());
             double start_deriv;
             double end_deriv;
-
 
             Cable::paraspline *spline;
             for (int i = 0; i < 3; i++)
@@ -175,20 +175,20 @@ int main(int argc, char **argv)
                 if (i == 0)
                 {
                     interp_obj = reading_x;
-                    start_deriv = startN[0];
-                    end_deriv = endN[0];
+                    start_deriv = start_normal[0];
+                    end_deriv = end_normal[0];
                 }
                 else if (i == 1)
                 {
                     interp_obj = reading_y;
-                    start_deriv = startN[1];
-                    end_deriv = endN[1];
+                    start_deriv = start_normal[1];
+                    end_deriv = end_normal[1];
                 }
                 else if (i == 2)
                 {
                     interp_obj = reading_z;
-                    start_deriv = startN[2];
-                    end_deriv = endN[2];
+                    start_deriv = start_normal[2];
+                    end_deriv = end_normal[2];
                 }
                 // ROS_INFO_STREAM("the length of the interpolation object is " << interp_obj.size());
 
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
                                      Cable::paraspline::bound_type::first_order, end_deriv);
                 spline->set_points(interp_space, interp_obj, Cable::paraspline::cubic);
 
-                auto fine_space = linspace(0, 1, 100);
+                auto fine_space = Linspace(0, 1, 100);
 
                 for (int j = 0; j < fine_space.size(); j++)
                 {
@@ -210,31 +210,29 @@ int main(int argc, char **argv)
                 delete spline;
             }
 
-
             // Publish the result
-            geometry_msgs::Pose p_temp;
+            geometry_msgs::Pose pose_temp;
 
-            for (int i = 0; i < OpticalReading.size(); i++)
+            for (int i = 0; i < optical_reading.size(); i++)
             {
-                p_temp.position.x = OpticalReading[i][0];
-                p_temp.position.y = OpticalReading[i][1];
-                p_temp.position.z = OpticalReading[i][2];
+                pose_temp.position.x = optical_reading[i][0];
+                pose_temp.position.y = optical_reading[i][1];
+                pose_temp.position.z = optical_reading[i][2];
 
-                sorted_output.poses.push_back(p_temp);
+                sorted_output.poses.push_back(pose_temp);
             }
 
-            for (int k=0; k<interp_set[0].size(); k++)
+            for (int k = 0; k < interp_set[0].size(); k++)
             {
-                p_temp.position.x = interp_set[0][k];
-                p_temp.position.y = interp_set[1][k];
-                p_temp.position.z = interp_set[2][k];
+                pose_temp.position.x = interp_set[0][k];
+                pose_temp.position.y = interp_set[1][k];
+                pose_temp.position.z = interp_set[2][k];
 
-                interp_output.poses.push_back(p_temp);
+                interp_output.poses.push_back(pose_temp);
             }
 
-            sorted_pub_.publish(sorted_output);
-            interp_pub_.publish(interp_output);
-
+            sorted_pub.publish(sorted_output);
+            interp_pub.publish(interp_output);
 
             reading_x.clear();
             reading_y.clear();
@@ -248,8 +246,8 @@ int main(int argc, char **argv)
             nh.setParam("/ReadingCatched", false);
             ROS_INFO("Marker data is incomplete!");
         }
-        OpticalReading.clear();
-        startP.clear();
+        optical_reading.clear();
+        start_point.clear();
 
         ros::spinOnce();
         rate.sleep();
