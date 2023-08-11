@@ -145,5 +145,7 @@ cmake-build-release/
 # ROS data
 *.bag
 **.bag
+*.png
+*.jpg
 
 
