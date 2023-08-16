@@ -4,9 +4,8 @@
     <!-- <rosparam startP="..">..</rosparam>-->
     <rosparam param="ReadingCatched">false</rosparam>
 
-    <!-- <node pkg="interp_cable" type="interp_w_plot_node" name="interp_w_plot_node" output="screen" /> -->
-    <node pkg="interp_cable" type="interp_node" name="interp" output="screen" />
-
+    <node pkg="interp_cable" type="interp_w_plot_node" name="interp_w_plot_node" output="screen" />
+    <!-- <node pkg="interp_cable" type="interp_node" name="interp" output="screen" /> -->
 
 
 </launch>
