@@ -27,3 +27,6 @@ Need to register physics engine frame and the optical tracker frame
 
 ### 2023 06 05
 Try to solve the 4 point scenario in 2D plane with no prior knowledge about the direction of any point.
+
+### 2023 07 25
+Implemented the visualization for sensor fusion of optical tracker and RealSense RGBD camera. Now the interpolation and sorting result is overlaid on the 2D images captured by the RealSense camera.

@@ -127,8 +127,8 @@ int main(int argc, char **argv)
     direction_sub = nh.subscribe("/NDI/PointerNew/measured_cp", 1, PointerDirectionCallback);
     // NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
 
-    sorted_pub = nh.advertise<geometry_msgs::PoseArray>("/Sorted", 10);
-    interp_pub = nh.advertise<geometry_msgs::PoseArray>("/Interp", 10);
+    sorted_pub = nh.advertise<geometry_msgs::PoseArray>("/sorted_pts", 10);
+    interp_pub = nh.advertise<geometry_msgs::PoseArray>("/interpolated_pts", 10);
 
     SetDirection();
     SetStartPoint();
