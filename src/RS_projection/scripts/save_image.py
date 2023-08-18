@@ -2,6 +2,7 @@ import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
+import time
 
 def image_callback(msg):
     bridge = CvBridge()
@@ -13,6 +14,7 @@ def image_callback(msg):
         # Save the image as PNG
         cv2.imwrite("received_image.png", cv_image)
         rospy.loginfo("Image saved as received_image.png")
+        time.sleep(3)
     except Exception as e:
         rospy.logerr(e)
 

@@ -1,8 +1,10 @@
 #!/user/bin/env python
 import rospy
-from geometry_msgs.msg import PoseArray
 import numpy as np
+import cv2
 from matplotlib import pyplot as plt
+from geometry_msgs.msg import PoseArray
+from cv_bridge import CvBridge, CvBridgeError
 
 
 class CableRTViz:
@@ -17,16 +19,16 @@ class CableRTViz:
         self.point_list = []
 
     def CB_interp(self, msg):
-        for i in range(0, len(msg.poses)):
+        for pose in msg.poses:
             self.point_list.append(
                 [
-                    msg.poses[i].position.x,
-                    msg.poses[i].position.y,
-                    msg.poses[i].position.z,
+                    pose.position.x,
+                    pose.position.y,
+                    pose.position.z,
                 ]
             )
 
-        rospy.loginfo(self.point_list)
+        rospy.loginfo("Point List is Captured")
 
     def CB_image(self, msg):
         pass
