@@ -2,6 +2,7 @@ import numpy as np
 import rosbag
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from draw_points import interpolation
 
 def aruco_transformation_matrix(P_x, P_y, P_z, Q_x, Q_y, Q_z, Q_w):
     # First row of the rotation matrix
@@ -36,7 +37,7 @@ def GetData(msg):
 
 
 if __name__ == "__main__":
-    image = mpimg.imread("./received_image.png")
+    image = mpimg.imread("received_image.png")
     bag = rosbag.Bag("2023081.bag", "r")
 
     tool_tip = np.array([-0.1666, 0.0008, -0.0009])
@@ -143,9 +144,14 @@ if __name__ == "__main__":
         )  # scale the points with z normalized to 1
     #print(list_pts)
 
-    
+    # sort the datapoints
+    order = np.array([6, 2, 0, 3, 5, 8, 7, 4, 1])
     pts = np.array(list_pts)
+    pts = pts[order]
+    print(pts)
+
     plt.imshow(image)
+    interpolation(pts, plt.gca())
     # plt.plot(640, 570, "og", markersize=10)  # og:shorthand for green circle
     plt.scatter(pts[:, 0], pts[:, 1], marker="o", color="red", s=250)
     plt.show()

@@ -51,7 +51,7 @@ def interpolation(points, ax):
 
     alpha = np.linspace(0, 1, 75)
     points_fitted = np.vstack(s(alpha) for s in splines).T
-    # ax.plot(*points_fitted.T, "-r", label="fitted spline k=3, s=.2", lw=3.5)
+    ax.plot(*points_fitted.T, "-r", label="fitted spline k=3, s=.2", lw=3.5)
 
     # model_samples = np.linspace(X.min(), X.max(), 100)
 
@@ -111,9 +111,9 @@ if __name__ == "__main__":
     # print(list_pts)
 
     # sort the datapoints
-    order = np.array([3, 1, 2, 5, 7, 9, 8, 6, 4])
+    order = np.array([6, 2, 0, 3, 5, 8, 7, 4, 1])
     pts = np.array(list_pts)
-    pts = pts[order - 1]
+    pts = pts[order]
     print(pts)
     # plot the points on the image
 
