@@ -50,12 +50,25 @@ class CableRTViz:
 
         pass
 
-    def CB_pointcloud(self, msg):
-        pass
+    def CB_depth(self, msg):
+        try:
+            depth_img = CvBridge().imgmsg_to_cv2(msg, "32FC1")
+            depth_img = np.array(depth_img, dtype=np.float32)
+            depth_img = cv2.normalize(depth_img, depth_img, 0, 1, cv2.NORM_MINMAX)
+        except CvBridgeError as e:
+            rospy.logerr(e)
 
     def run(self):
-        plt.plot(self.point_list)
-        rospy.spin()
+        while not rospy.is_shutdown():
+            if self.point_list is not None:
+                cv2.imshow("show RGB Image", self.rgb_img)
+                cv2.waitKey(1)
+                cv2.imshow("show depth Image", self.depth_img)
+
+                cv2.scatter(
+                    self.rgb_img, self.point_list, 1, (0, 0, 255)
+                )  # visualize the points on the image, have to be 2D points
+            rospy.spin()
 
 
 if __name__ == "__main__":
