@@ -38,29 +38,29 @@ def GetData(msg):
 
 if __name__ == "__main__":
     image = mpimg.imread("received_image.png")
-    bag = rosbag.Bag("2023081.bag", "r")
+    bag = rosbag.Bag("2023-08-22-11-58-36.bag", "r")
 
     tool_tip = np.array([-0.1666, 0.0008, -0.0009])
 
-    translation1 = np.array([0.06367,  -0.06774,  -1.12689])
-    rotation_homo1 = aruco_transformation_matrix(0, 0, 0, 0.365935007, -0.11271078, 0.9237883738, 0.0017)
+    translation1 = np.array([-0.1075, 0.04522, -0.9059])
+    rotation_homo1 = aruco_transformation_matrix(0, 0, 0, 0.242124147035, -0.188318781027, 0.9473944836263, 0.09140911622869652)
 
-    translation2 = np.array([0.08778,   0.05318,  -1.11543])
-    rotation_homo2 = aruco_transformation_matrix(0, 0, 0, 0.30462706122, -0.09470841332, 0.9475841776414, -0.017801581385)
+    translation2 = np.array([-0.12205, -0.08675, -0.9263])
+    rotation_homo2 = aruco_transformation_matrix(0, 0, 0, 0.2353244020524389, -0.18281895748060276, 0.9510986245298313, 0.08130843130838622)
 
-    translation3 = np.array([-0.02501,  0.10163,  -1.18093])
-    rotation_homo3 = aruco_transformation_matrix(0, 0, 0, 0.2868184645, -0.162610468386, 0.9440607758687, 0.0065)
+    translation3 = np.array([-0.00881, -0.12501, -0.84154])
+    rotation_homo3 = aruco_transformation_matrix(0, 0, 0, 0.2804195574, -0.1273089781942, 0.95126613807, 0.01580)
 
-    translation4 = np.array([-0.01749, -0.01068,  -1.16211])
-    rotation_homo4 = aruco_transformation_matrix(0, 0, 0,  0.454628917592, -0.1181075124672533, 0.8811560477129289, 0.0541034413)
+    translation4 = np.array([0.00067, -0.01303, -0.83334])
+    rotation_homo4 = aruco_transformation_matrix(0, 0, 0,  0.256423093221537, -0.08500765571, 0.9612865725606135, -0.05430489064715076)
 
-    P_x = 0.009141292423009872
-    P_y = 0.032449230551719666
-    P_z = 0.8945698738098145
-    Q_x = -0.6617885447981704
-    Q_y = 0.6834627280713695
-    Q_z = -0.22208728048439078
-    Q_w = -0.21352250738085848
+    P_x = -0.00015562823682557791
+    P_y = 0.004592740908265114
+    P_z = 0.8858861327171326
+    Q_x = 0.6797390030145669
+    Q_y = 0.6641538703448957
+    Q_z = -0.222600551109178
+    Q_w = 0.21749372159340236
 
     rotation1 = np.array([[rotation_homo1[0][0], rotation_homo1[0][1], rotation_homo1[0][2]], [rotation_homo1[1][0], rotation_homo1[1][1], rotation_homo1[1][2]], [rotation_homo1[2][0], rotation_homo1[2][1], rotation_homo1[2][2]]])
     rotation2 = np.array([[rotation_homo2[0][0], rotation_homo2[0][1], rotation_homo2[0][2]], [rotation_homo2[1][0], rotation_homo2[1][1], rotation_homo2[1][2]], [rotation_homo2[2][0], rotation_homo2[2][1], rotation_homo2[2][2]]])
@@ -118,9 +118,9 @@ if __name__ == "__main__":
 
     
     point_list = []
-    matrix_rsc_im = np.array([[961.650634765625, 0.0, 636.0615234375, 0],
-                               [0.0, 952.003662109375, 357.694549561, 0],
-                               [0, 0, 1, 0]])
+    matrix_rsc_im = np.array([[969.650634765625, 0.0, 634.0615234375, 0],
+                              [0.0, 950.003662109375, 358.694549561, 0],
+                              [0, 0, 1, 0],])
     
     # matrix_rsc_im = np.array([[916.43481445,   0,  630.85916934, 0],
     #                           [0.0,  911.37298584, 362.27576711, 0],
@@ -129,10 +129,11 @@ if __name__ == "__main__":
     for topic, msg, t in bag.read_messages(topics="/NDI/measured_cp_array"):
         # if t.secs == 1691792439 and t.nsecs == 314266213:
         max_iter = max_iter + 1
-        if max_iter == 100:
+        if max_iter == 110:
             point_list = GetData(msg)
             #print(point_list)
 
+    point_list.append(center_point)
     list_pts = []
     for p in point_list:
         image_points = matrix_rs_NDI.dot(np.transpose(np.append(np.array(p), 1)))
@@ -145,7 +146,7 @@ if __name__ == "__main__":
     #print(list_pts)
 
     # sort the datapoints
-    order = np.array([6, 2, 0, 3, 5, 8, 7, 4, 1])
+    order = np.array([6, 2, 0, 3, 5, 8, 7, 4, 1, 9, 10])
     pts = np.array(list_pts)
     pts = pts[order]
     print(pts)
@@ -159,8 +160,19 @@ if __name__ == "__main__":
 
 
     #Test Code
-    #exam_point = np.array([0.07848, -0.06649, -1.11854])
-    #tool_tip = np.array([-0.1666, 0.0008, -0.0009])
+    pointed_mid_point = np.array([-0.11274, -0.09907, -0.95352])
+    trans_matrix = aruco_transformation_matrix(0, 0, 0, 0.1031086346786171, -0.14071178369817097, 0.9821822513857408, 0.06990585416135148)
+    roation_matrix = np.array([[trans_matrix[0][0], trans_matrix[0][1], trans_matrix[0][2]], [trans_matrix[1][0], trans_matrix[1][1], trans_matrix[1][2]], [trans_matrix[2][0], trans_matrix[2][1], trans_matrix[2][2]]])
+    new_tip = roation_matrix.dot(np.transpose(tool_tip)) + np.transpose(pointed_mid_point)
+    
+    RS_mid_point = np.array([0.07969529926776886, 0.03305203467607498, 0.8687229752540588, 1])
+    NDI_mid_point = matrix_rs_NDI.dot(np.append(new_tip, 1))
+    vector_error = NDI_mid_point[0:3] - RS_mid_point[0:3]
+    space_error = np.linalg.norm(vector_error)
+    pixel_error = np.linalg.norm(matrix_rsc_im.dot(np.append(vector_error, 1)))
+    print("NDI to image", matrix_rsc_im @ matrix_rs_NDI)
+    print("space error", space_error)
+    print("pixel error", pixel_error)
     #trans_matrix = aruco_transformation_matrix(0, 0, 0, 0.322731869732042, -0.4045399482696, 0.825181486569, 0.2264223591798)
     #roation_matrix = np.array([[trans_matrix[0][0], trans_matrix[0][1], trans_matrix[0][2]], [trans_matrix[1][0], trans_matrix[1][1], trans_matrix[1][2]], [trans_matrix[2][0], trans_matrix[2][1], trans_matrix[2][2]]])
     #new_tip = roation_matrix.dot(np.transpose(tool_tip)) + np.transpose(exam_point)
