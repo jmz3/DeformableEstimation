@@ -170,6 +170,7 @@ if __name__ == "__main__":
     vector_error = NDI_mid_point[0:3] - RS_mid_point[0:3]
     space_error = np.linalg.norm(vector_error)
     pixel_error = np.linalg.norm(matrix_rsc_im.dot(np.append(vector_error, 1)))
+    print("NDI to image", matrix_rsc_im @ matrix_rs_NDI)
     print("space error", space_error)
     print("pixel error", pixel_error)
     #trans_matrix = aruco_transformation_matrix(0, 0, 0, 0.322731869732042, -0.4045399482696, 0.825181486569, 0.2264223591798)
