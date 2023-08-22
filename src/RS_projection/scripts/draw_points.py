@@ -64,7 +64,7 @@ def interpolation(points, ax):
 
 
 if __name__ == "__main__":
-    bag = rosbag.Bag("bag/NDI_9points_0728.bag", "r")
+    bag = rosbag.Bag("bag/2023081.bag", "r")
     point_list = []
     matrix_rsd_NDI = np.array(
         [

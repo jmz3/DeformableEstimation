@@ -72,9 +72,15 @@ class CableRTViz:
                 # cv2.imshow("show RGB Image", self.rgb_img)
                 # cv2.waitKey(1)
                 # cv2.imshow("show depth Image", self.depth_img)
-                for point in self.point_list:
-                    cv2.circle(self.rgb_img, (point[0], point[1]), 1, (0, 0, 255), -1)
-
+                pts = np.array(self.point_list, np.int32)
+                pts = pts.reshape((-1, 1, 2))
+                cv2.polylines(
+                    self.rgb_img,
+                    [pts],
+                    isClosed=False,
+                    color=(0, 255, 255),
+                    thickness=1,
+                )
             rospy.spin()
 
 
