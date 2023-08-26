@@ -31,55 +31,59 @@ def sorted_callback(sorted_pointset):
         y_s.append(sorted_pointset.poses[i].position.y)
         z_s.append(sorted_pointset.poses[i].position.z)
 
-
-
     visualize()
-    
-def interpolation_sorted(x:np.ndarray):
-    t = np.linspace(0,1,len(x))
-    f = interp1d(t, x, kind='cubic')
+
+
+def interpolation_sorted(x: np.ndarray):
+    t = np.linspace(0, 1, len(x))
+    f = interp1d(t, x, kind="cubic")
     interp_x = f(interp_param)
 
     return interp_x
 
-def visualize():
 
+def visualize():
     ax.clear()
     x = interpolation_sorted(np.array(x_s))
     y = interpolation_sorted(np.array(y_s))
     z = interpolation_sorted(np.array(z_s))
-    ax.plot3D(x, y, z, 'Green', label='Interpolated Curve')
-    x,y,z = np.array(x_s), np.array(y_s), np.array(z_s)
-    ax.scatter3D(x_s, y_s, z_s, color='red', label='Sorted Knots')
-    ax.text3D(x_s[0], y_s[0], z_s[0] + 50, 'Fixed End', color='black')
-    ax.text3D(x_s[len(x_s)-1], y_s[len(y_s)-1], z_s[len(z_s)-1] + 50, 'Free End', color='black')
+    ax.plot3D(x, y, z, "Green", label="Interpolated Curve")
+    x, y, z = np.array(x_s), np.array(y_s), np.array(z_s)
+    ax.scatter3D(x_s, y_s, z_s, color="red", label="Sorted Knots")
+    ax.text3D(x_s[0], y_s[0], z_s[0] + 50, "Fixed End", color="black")
+    ax.text3D(
+        x_s[len(x_s) - 1],
+        y_s[len(y_s) - 1],
+        z_s[len(z_s) - 1] + 50,
+        "Free End",
+        color="black",
+    )
 
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
- # type: ignore
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+    # type: ignore
     ax.set_xlim(left=-400, right=600)
     ax.set_ylim(-600, 600)
     ax.set_zlim(-1500, -900)
- # type: ignore
+    # type: ignore
     ax.legend()
-    ax.set_title('Real-time Interpolation')
+    ax.set_title("Real-time Interpolation")
     plt.draw()
     plt.pause(0.001)
 
 
 if __name__ == "__main__":
-
-    x_s,y_s,z_s = [],[],[] # sorted x,y,z
-    interp_param = np.linspace(0,1,100)
+    x_s, y_s, z_s = [], [], []  # sorted x,y,z
+    interp_param = np.linspace(0, 1, 100)
 
     fig = plt.figure()
-    ax = plt.axes(projection='3d')
+    ax = plt.axes(projection="3d")
 
-    rospy.init_node('ploter', anonymous=True)
+    rospy.init_node("ploter", anonymous=True)
     rate = rospy.Rate(100)  # 10hz
     # rospy.Subscriber("Interp", PoseArray, interp_callback)
-    rospy.Subscriber("Sorted", PoseArray, sorted_callback)
+    rospy.Subscriber("/sorted_pts", PoseArray, sorted_callback)
 
     while not rospy.is_shutdown():
         plt.show()

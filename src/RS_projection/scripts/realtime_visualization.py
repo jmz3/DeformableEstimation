@@ -36,7 +36,7 @@ class CableRTViz:
         self.point_list = []
         for pose in msg.poses:
             point = np.array([pose.position.x, pose.position.y, pose.position.z, 1])
-            point = np.reshape(point,(4,1))
+            point = np.reshape(point, (4, 1))
             pixel_coord = self.T_proj @ point
             self.point_list.append(
                 pixel_coord[0] / pixel_coord[2], pixel_coord[1] / pixel_coord[2]
@@ -86,9 +86,12 @@ class CableRTViz:
 
 if __name__ == "__main__":
     T_NDI_to_camera = np.array(
-        [[ 5.01162310e+02 -9.82193900e+02 -3.55510689e+02  1.35128111e+02],
-         [ 4.13477157e+01  1.52610502e+02 -1.00307983e+03 -6.38292381e+02],
-         [ 9.44384216e-01 -4.58204811e-02 -3.25636203e-01  4.92087895e-01]])
+        [
+            [5.01162310e02, -9.82193900e02, -3.55510689e02, 1.35128111e02],
+            [4.13477157e01, 1.52610502e02, -1.00307983e03, -6.38292381e02],
+            [9.44384216e-01, -4.58204811e-02, -3.25636203e-01, 4.92087895e-01],
+        ]
+    )
     try:
         cable_rtviz = CableRTViz(T_proj=T_NDI_to_camera)
         cable_rtviz.run()

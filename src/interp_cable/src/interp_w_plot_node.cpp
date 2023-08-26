@@ -130,6 +130,12 @@ int main(int argc, char **argv)
     sorted_pub = nh.advertise<geometry_msgs::PoseArray>("/sorted_pts", 10);
     interp_pub = nh.advertise<geometry_msgs::PoseArray>("/interpolated_pts", 10);
 
+    // set the direction of the end point manually
+    end_normal.clear();
+    end_normal.push_back(0.00067 - (-0.00831));
+    end_normal.push_back(-0.01303 - (-0.12501));
+    end_normal.push_back(-0.83334 - (-0.84154));
+
     SetDirection();
     SetStartPoint();
     ROS_ASSERT(start_point.size() == 3);
