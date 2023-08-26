@@ -24,9 +24,9 @@ geometry_msgs::PoseArray interp_output;
 
 int num_of_markers = 0;
 double kThetaMax = M_PI;
-double kThetaMin = 0.0;
+double kThetaMin = 0;
 double kDeltaLength = 200;
-double kSigma = 0.25 * kDeltaLength;
+double kSigma = 0.2 * kDeltaLength;
 
 void PointArrayCallback(const geometry_msgs::PoseArray &p)
 {
@@ -92,17 +92,17 @@ void PointerDirectionCallback(const geometry_msgs::TransformStamped &pointer)
 void SetStartPoint()
 {
     start_point.clear();
-    start_point.push_back(104.750);
-    start_point.push_back(-86.92);
-    start_point.push_back(-719.07);
+    start_point.push_back(104.64);
+    start_point.push_back(-158.46);
+    start_point.push_back(-725.55);
 }
 
 void SetDirection()
 {
     start_normal.clear();
-    start_normal.push_back(104.75 - (104.64));
-    start_normal.push_back(-86.92 - (-158.46));
-    start_normal.push_back(-719.07 - (-725.55));
+    start_normal.push_back(-(104.75 - (104.64)));
+    start_normal.push_back(-(86.92 - (-158.46)));
+    start_normal.push_back(-(-719.07 - (-725.55)));
 };
 
 int main(int argc, char **argv)
@@ -124,17 +124,17 @@ int main(int argc, char **argv)
     //------------------------------------------------------------------------------
     // Subscribe to the stray markers
     point_sub = nh.subscribe("/NDI/measured_cp_array", 1, PointArrayCallback);
-    direction_sub = nh.subscribe("/NDI/PointerNew/measured_cp", 1, PointerDirectionCallback);
-    // NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
+    // direction_sub = nh.subscribe("/NDI/PointerNew/measured_cp", 1, PointerDirectionCallback);
+    //  NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
 
     sorted_pub = nh.advertise<geometry_msgs::PoseArray>("/sorted_pts", 10);
     interp_pub = nh.advertise<geometry_msgs::PoseArray>("/interpolated_pts", 10);
 
     // set the direction of the end point manually
     end_normal.clear();
-    end_normal.push_back(0.00067 - (-0.00831));
-    end_normal.push_back(-0.01303 - (-0.12501));
-    end_normal.push_back(-0.83334 - (-0.84154));
+    end_normal.push_back(-179.22 - (-163.55));
+    end_normal.push_back(-74.58 - (-103.41));
+    end_normal.push_back(-922.91 - (-918.87));
 
     SetDirection();
     SetStartPoint();
