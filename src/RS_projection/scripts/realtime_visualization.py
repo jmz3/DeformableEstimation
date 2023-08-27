@@ -24,8 +24,7 @@ class CableRTViz:
         rospy.Subscriber("/sorted_pts", PoseArray, self.CB_interp)
         rospy.Subscriber("/camera/color/image_raw", Image, self.CB_image)
         # rospy.Subscriber("/camera/depth/color/points", PoseArray, self.CB_depth)
-
-        rospy.Rate(50)
+        self.rate = rospy.Rate(50)
 
         # Define the class variables
         self.point_list = None
@@ -41,7 +40,7 @@ class CableRTViz:
             pixel_coord = self.T_proj @ point
             self.point_list.append(pixel_coord[0:2] / pixel_coord[2])
 
-        print(self.point_list)
+        # print(self.point_list)
         # rospy.loginfo("Point List is Captured")
 
     def CB_image(self, msg):
@@ -66,21 +65,26 @@ class CableRTViz:
 
     def run(self):
         while not rospy.is_shutdown():
-            if self.point_list is not None:
+            # print(len(self.point_list))
+            if self.point_list is not None and self.rgb_img is not None:
                 rospy.loginfo("Start to show image")
                 pts = np.array(self.point_list, np.int32)
                 pts = pts.reshape((-1, 1, 2))
-                cv2.polylines(
-                    self.rgb_img,
-                    [pts],
-                    isClosed=False,
-                    color=(0, 255, 255),
-                    thickness=1,
-                )
-                plt.imshow(self.rgb_img)
+                # cv2.polylines(
+                #     self.rgb_img,
+                #     [pts],
+                #     isClosed=False,
+                #     color=(0, 255, 255),
+                #     thickness=1,
+                # )
+                rgb_img = cv2.cvtColor(self.rgb_img, cv2.COLOR_BGR2RGB)
+                plt.imshow(rgb_img)
                 rospy.loginfo("Image is shown")
+                plt.draw()
+                plt.pause(0.001)
                 plt.show()
-            rospy.spin()
+
+            self.rate.sleep()
 
 
 if __name__ == "__main__":
