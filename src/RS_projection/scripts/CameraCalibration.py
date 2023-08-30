@@ -108,7 +108,7 @@ if __name__ == "__main__":
     #print(matrix_rs)
     matrix_NDI_rs = np.matmul(matrix_NDI, np.linalg.inv(matrix_rs))
     matrix_rs_NDI = np.matmul(matrix_rs, np.linalg.inv(matrix_NDI))
-    #print("NDI to RS transformation: \n", matrix_NDI_rs)
+    print("NDI to RS transformation: \n", matrix_NDI_rs)
     print("RS to NDI transformation: \n", matrix_rs_NDI)
     result = np.matmul(matrix_NDI_rs, matrix_rs_NDI)
     if np.linalg.det(result) <= 1.01:
