@@ -23,7 +23,7 @@ geometry_msgs::PoseArray sorted_output;
 geometry_msgs::PoseArray interp_output;
 
 int num_of_markers = 0;
-double kThetaMax = M_PI;
+double kThetaMax = M_PI * 0.4;
 double kThetaMin = 0;
 double kDeltaLength = 200;
 double kSigma = 0.2 * kDeltaLength;
@@ -92,17 +92,17 @@ void PointerDirectionCallback(const geometry_msgs::TransformStamped &pointer)
 void SetStartPoint()
 {
     start_point.clear();
-    start_point.push_back(104.64);
-    start_point.push_back(-158.46);
-    start_point.push_back(-725.55);
+    start_point.push_back(245.24);
+    start_point.push_back(-65.73);
+    start_point.push_back(-810.85);
 }
 
 void SetDirection()
 {
     start_normal.clear();
-    start_normal.push_back(-(104.75 - (104.64)));
-    start_normal.push_back(-(86.92 - (-158.46)));
-    start_normal.push_back(-(-719.07 - (-725.55)));
+    start_normal.push_back(-(225.9 - (239.8)));
+    start_normal.push_back(-(-145.8 - (-72.3)));
+    start_normal.push_back(-(-839.1 - (-815.6)));
 };
 
 int main(int argc, char **argv)
@@ -132,9 +132,9 @@ int main(int argc, char **argv)
 
     // set the direction of the end point manually
     end_normal.clear();
-    end_normal.push_back(-179.22 - (-163.55));
-    end_normal.push_back(-74.58 - (-103.41));
-    end_normal.push_back(-922.91 - (-918.87));
+    end_normal.push_back(-24.9 - (-83.3));
+    end_normal.push_back(-116.4 - (76.0));
+    end_normal.push_back(-1010.4 - (-1059.1));
 
     SetDirection();
     SetStartPoint();

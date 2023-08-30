@@ -30,7 +30,7 @@ namespace Cable
              std::vector<double> start_point, std::vector<double> start_normal, bool include_start);
         ~Sort();
 
-        double Angle(std::vector<double> &v1, std::vector<double> &v2); // Angle between two vectors
+        double GetAngle(std::vector<double> &v1, std::vector<double> &v2); // Angle between two vectors
         void Init(std::vector<std::vector<double>> &point_set);  // Initialize the arguments
         void SortPoints(std::vector<std::vector<double>> &point_set); // sort the input data v based on the sorting algorithm
         double Norm(std::vector<double> &v); // Norm calculator
