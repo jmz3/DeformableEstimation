@@ -30,3 +30,11 @@ Try to solve the 4 point scenario in 2D plane with no prior knowledge about the 
 
 ### 2023 07 25
 Implemented the visualization for sensor fusion of optical tracker and RealSense RGBD camera. Now the interpolation and sorting result is overlaid on the 2D images captured by the RealSense camera.
+
+### 2023 08 21
+[Feature Added]:
+- Added the realtime visualization for the sensor fusion of optical tracker and RealSense RGBD camera. 
+- Now the node can be run on a slave machine by specifying the ROS_MASTER_URI and ROS_IP, and the node can subscribe to the NDI topics published by the master machine.
+
+[Bug Fixed]:
+- Solved the buggy problem of Rodrigues rotation calculation. 
