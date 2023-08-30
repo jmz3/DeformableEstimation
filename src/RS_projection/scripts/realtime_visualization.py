@@ -6,7 +6,7 @@ from matplotlib import pyplot as plt
 from geometry_msgs.msg import PoseArray
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-
+from matplotlib.animation import FuncAnimation
 
 class CableRTViz:
     def __init__(self, T_proj: np.ndarray):
@@ -66,23 +66,30 @@ class CableRTViz:
     def run(self):
         while not rospy.is_shutdown():
             # print(len(self.point_list))
+            #plt.ioff()
+            #plt.show()
             if self.point_list is not None and self.rgb_img is not None:
+                #plt.show()
+                plt.ioff()
                 rospy.loginfo("Start to show image")
                 pts = np.array(self.point_list, np.int32)
-                pts = pts.reshape((-1, 1, 2))
-                # cv2.polylines(
-                #     self.rgb_img,
-                #     [pts],
-                #     isClosed=False,
-                #     color=(0, 255, 255),
-                #     thickness=1,
-                # )
+                cv2.polylines(
+                    self.rgb_img,
+                    [pts],
+                    isClosed=False,
+                    color=(0, 255, 255),
+                    thickness=1,
+                )
                 rgb_img = cv2.cvtColor(self.rgb_img, cv2.COLOR_BGR2RGB)
+                #plt.clear()
                 plt.imshow(rgb_img)
                 rospy.loginfo("Image is shown")
                 plt.draw()
-                plt.pause(0.001)
-                plt.show()
+                plt.pause(0.0001)
+                #plt.scatter(pts[:, 0], pts[:, 1], marker="o", color="red", s=250)
+                #plt.show()
+                #plt.ioff()
+                #plt.show(block=True)
 
             self.rate.sleep()
 
@@ -90,10 +97,10 @@ class CableRTViz:
 if __name__ == "__main__":
     T_NDI_to_camera = np.array(
         [
-            [5.01162310e02, -9.82193900e02, -3.55510689e02, 1.35128111e02],
-            [4.13477157e01, 1.52610502e02, -1.00307983e03, -6.38292381e02],
-            [9.44384216e-01, -4.58204811e-02, -3.25636203e-01, 4.92087895e-01],
-            [0, 0, 0, 1],
+            [-0.1006913,  -0.31304906,  0.94438422, -0.75158512],
+            [-0.98297352,  0.17794253, -0.04582048, -0.00415036],
+            [-0.15370206,  -0.9329184,   -0.3256362,  -0.66794494],
+            [ 0.,          0. ,         0. ,         1. ,       ]
         ]
     )
     T_inrinsic = np.array(
