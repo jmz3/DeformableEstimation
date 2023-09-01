@@ -10,7 +10,7 @@ from matplotlib.animation import FuncAnimation
 
 
 class CableRTViz:
-    def __init__(self, T_proj: np.ndarray):
+    def __init__(self, T_RS_to_NDI: np.ndarray, T_inrinsic: np.ndarray):
         """
         Initialize ROS node
 
@@ -21,7 +21,7 @@ class CableRTViz:
         """
 
         rospy.init_node("RT_viz", anonymous=False)
-        rospy.loginfo("realtime_visualization node started")
+        # rospy.loginfo("realtime_visualization node started")
         rospy.Subscriber("/sorted_pts", PoseArray, self.CB_interp)
         rospy.Subscriber("/camera/color/image_raw", Image, self.CB_image)
         # rospy.Subscriber("/camera/depth/color/points", PoseArray, self.CB_depth)
@@ -31,7 +31,8 @@ class CableRTViz:
         self.point_list = None
         self.rgb_img = None
         self.depth_img = None
-        self.T_proj = T_proj
+        self.T_RS_to_NDI = T_RS_to_NDI
+        self.T_inrinsic = T_inrinsic
 
     def CB_interp(self, msg):
         self.point_list = []
@@ -45,7 +46,9 @@ class CableRTViz:
                 ]
             )
             point = np.reshape(point, (4, 1))
-            pixel_coord = self.T_proj @ point
+            p1 = self.T_RS_to_NDI.dot(np.transpose(point))
+            # print(p1)
+            pixel_coord = self.T_inrinsic.dot(p1)
             self.point_list.append(pixel_coord[0:2] / pixel_coord[2])
 
         # print(self.point_list)
@@ -67,7 +70,7 @@ class CableRTViz:
             depth_img = CvBridge().imgmsg_to_cv2(msg, "32FC1")
             depth_img = np.array(depth_img, dtype=np.float32)
             self.depth_img = cv2.normalize(depth_img, depth_img, 0, 1, cv2.NORM_MINMAX)
-            rospy.loginfo("Depth Image is Captured")
+            # rospy.loginfo("Depth Image is Captured")
         except CvBridgeError as e:
             rospy.logerr(e)
 
@@ -79,8 +82,7 @@ class CableRTViz:
             if self.point_list is not None and self.rgb_img is not None:
                 # plt.show()
                 plt.ioff()
-                print(self.point_list)
-                rospy.loginfo("Start to show image")
+                # rospy.loginfo("Start to show image")
                 pts = np.array(self.point_list, np.int32)
                 cv2.polylines(
                     self.rgb_img,
@@ -94,7 +96,7 @@ class CableRTViz:
                 plt.imshow(rgb_img)
                 rospy.loginfo("Image is shown")
                 plt.draw()
-                plt.pause(0.0001)
+                plt.pause(0.00000001)
                 # plt.scatter(pts[:, 0], pts[:, 1], marker="o", color="red", s=250)
                 # plt.show()
                 # plt.ioff()
@@ -104,17 +106,12 @@ class CableRTViz:
 
 
 if __name__ == "__main__":
-    T_NDI_to_camera = np.array(
+    T_RS_to_NDI = np.array(
         [
-            [-0.1006913, -0.98297352, -0.15370206, 0.18242229],
+            [-0.1006913, -0.98297352, -0.15370206, -0.18242229],
             [-0.31304906, 0.17794253, -0.9329184, -0.85768262],
-            [0.94438422, -0.04582048, -0.3256362, -0.49208789],
-            [
-                0.0,
-                0.0,
-                0.0,
-                1.0,
-            ],
+            [0.94438422, -0.04582048, -0.3256362, 0.49208789],
+            [0.0, 0.0, 0.0, 1.0],
         ]
     )
 
@@ -140,9 +137,8 @@ if __name__ == "__main__":
         ]
     )
 
-    T_proj = T_inrinsic @ T_NDI_to_camera
     try:
-        cable_rtviz = CableRTViz(T_proj=T_proj)
+        cable_rtviz = CableRTViz(T_RS_to_NDI=T_RS_to_NDI, T_inrinsic=T_inrinsic)
         cable_rtviz.run()
     except rospy.ROSInterruptException:
         pass
