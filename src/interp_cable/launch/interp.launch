@@ -1,6 +1,6 @@
 <launch>
 
-    <rosparam param="marker_num">10</rosparam>
+    <rosparam param="/DOSE/marker_num">10</rosparam>
     <!-- <rosparam startP="..">..</rosparam>-->
     <rosparam param="ReadingCatched">false</rosparam>
 

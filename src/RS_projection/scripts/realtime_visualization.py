@@ -22,7 +22,7 @@ class CableRTViz:
 
         rospy.init_node("RT_viz", anonymous=False)
         # rospy.loginfo("realtime_visualization node started")
-        rospy.Subscriber("/DOSE/sorted_pts", PoseArray, self.CB_interp)
+        rospy.Subscriber("/DOSE/interpolated_pts", PoseArray, self.CB_interp)
         rospy.Subscriber("/camera/color/image_raw", Image, self.CB_image)
         # rospy.Subscriber("/camera/depth/color/points", PoseArray, self.CB_depth)
         self.pub_image_ = rospy.Publisher("/DOSE/overlay", Image, queue_size=10)
@@ -46,7 +46,7 @@ class CableRTViz:
                     1,
                 ]
             )
-            point = np.reshape(point, (4, 1))
+            # point = np.reshape(point, (4, 1))
             p1 = self.T_RS_to_NDI.dot(np.transpose(point))
             # print(p1)
             pixel_coord = self.T_inrinsic.dot(p1)
@@ -85,23 +85,26 @@ class CableRTViz:
                 plt.ioff()
                 # rospy.loginfo("Start to show image")
                 pts = np.array(self.point_list, np.int32)
-                cv2.polylines(
-                    self.rgb_img,
-                    [pts],
-                    isClosed=False,
-                    color=(0, 255, 255),
-                    thickness=1,
-                )
-
+                # cv2.polylines(
+                #     self.rgb_img,
+                #     [pts],
+                #     isClosed=False,
+                #     color=(0, 255, 255),
+                #     thickness=1,
+                # )
+                print(pts)
                 # Publish the image to rostopics
+                for p in pts:
+                    cv2.circle(self.rgb_img, (p[0], p[1]), 10, (0, 0, 255), -1)
+
                 self.pub_image_.publish(CvBridge().cv2_to_imgmsg(self.rgb_img, "bgr8"))
 
-                rgb_img = cv2.cvtColor(self.rgb_img, cv2.COLOR_BGR2RGB)
-                # plt.clear()
-                plt.imshow(rgb_img)
-                rospy.loginfo("Image is shown")
-                plt.draw()
-                plt.pause(0.00000001)
+                # rgb_img = cv2.cvtColor(self.rgb_img, cv2.COLOR_BGR2RGB)
+                # # plt.clear()
+                # plt.imshow(rgb_img)
+                # rospy.loginfo("Image is shown")
+                # plt.draw()
+                # plt.pause(0.00000001)
                 # plt.scatter(pts[:, 0], pts[:, 1], marker="o", color="red", s=250)
                 # plt.show()
                 # plt.ioff()
@@ -113,10 +116,10 @@ class CableRTViz:
 if __name__ == "__main__":
     T_RS_to_NDI = np.array(
         [
-            [-0.1006913, -0.98297352, -0.15370206, -0.18242229],
-            [-0.31304906, 0.17794253, -0.9329184, -0.85768262],
-            [0.94438422, -0.04582048, -0.3256362, 0.49208789],
-            [0.0, 0.0, 0.0, 1.0],
+            [-0.30795141, -0.93400759, -0.18109599, -0.19575269],
+            [-0.35330252,  0.28900212, -0.88975002, -0.78584078],
+            [ 0.8833704,  -0.2100181,  -0.41898585,  0.30760982],
+            [ 0.,          0.,          0.,          1.        ]
         ]
     )
 
@@ -136,7 +139,7 @@ if __name__ == "__main__":
 
     T_inrinsic = np.array(
         [
-            [969.650634765625, 0.0, 634.0615234375, 0],
+            [945.650634765625, 0.0, 634.0615234375, 0],
             [0.0, 950.003662109375, 358.694549561, 0],
             [0, 0, 1, 0],
         ]

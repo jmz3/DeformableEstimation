@@ -100,9 +100,9 @@ void SetStartPoint()
 void SetDirection()
 {
     start_normal.clear();
-    start_normal.push_back(-(225.9 - (239.8)));
-    start_normal.push_back(-(-145.8 - (-72.3)));
-    start_normal.push_back(-(-839.1 - (-815.6)));
+    start_normal.push_back(291.2 - (298.2));
+    start_normal.push_back((-28.8 - (-118.3)));
+    start_normal.push_back((-799.4 - (-785.3)));
 };
 
 int main(int argc, char **argv)
@@ -133,9 +133,9 @@ int main(int argc, char **argv)
 
     // set the direction of the end point manually
     end_normal.clear();
-    end_normal.push_back(-24.9 - (-83.3));
-    end_normal.push_back(-116.4 - (76.0));
-    end_normal.push_back(-1010.4 - (-1059.1));
+    end_normal.push_back(-9.0 - (-26.9));
+    end_normal.push_back(-71.9 - (-26.6));
+    end_normal.push_back(-999.1 - (-993.4));
 
     SetDirection();
     SetStartPoint();

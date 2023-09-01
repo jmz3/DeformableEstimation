@@ -42,25 +42,25 @@ if __name__ == "__main__":
 
     tool_tip = np.array([-0.1666, 0.0008, -0.0009])
 
-    translation1 = np.array([-0.1075, 0.04522, -0.9059])
-    rotation_homo1 = aruco_transformation_matrix(0, 0, 0, 0.242124147035, -0.188318781027, 0.9473944836263, 0.09140911622869652)
+    translation1 = np.array([-0.06838, 0.0172999, -0.90594])
+    rotation_homo1 = aruco_transformation_matrix(0, 0, 0, 0.2525269271192327, -0.25852756697157087, 0.9099970336070884, 0.203221669666)
 
-    translation2 = np.array([-0.12205, -0.08675, -0.9263])
-    rotation_homo2 = aruco_transformation_matrix(0, 0, 0, 0.2353244020524389, -0.18281895748060276, 0.9510986245298313, 0.08130843130838622)
+    translation2 = np.array([-0.11005, -0.10542, -0.92776])
+    rotation_homo2 = aruco_transformation_matrix(0, 0, 0, 0.26202635986757306, -0.16241633909348796, 0.93479404403367194, 0.17641774763603)
 
-    translation3 = np.array([-0.00881, -0.12501, -0.84154])
-    rotation_homo3 = aruco_transformation_matrix(0, 0, 0, 0.2804195574, -0.1273089781942, 0.95126613807, 0.01580)
+    translation3 = np.array([-0.00775, -0.12065, -0.86726])
+    rotation_homo3 = aruco_transformation_matrix(0, 0, 0, 0.219318, -0.100308251, 0.938677209376, 0.2464202689)
 
-    translation4 = np.array([0.00067, -0.01303, -0.83334])
-    rotation_homo4 = aruco_transformation_matrix(0, 0, 0,  0.256423093221537, -0.08500765571, 0.9612865725606135, -0.05430489064715076)
+    translation4 = np.array([0.02401, -0.02907, -0.83989])
+    rotation_homo4 = aruco_transformation_matrix(0, 0, 0,  0.2409242936, -0.138013916644858, 0.9477955710458859, 0.156815812535607)
 
-    P_x = -0.00015562823682557791
-    P_y = 0.004592740908265114
-    P_z = 0.8858861327171326
-    Q_x = 0.6797390030145669
-    Q_y = 0.6641538703448957
-    Q_z = -0.222600551109178
-    Q_w = 0.21749372159340236
+    P_x = 0.05185291916131973
+    P_y = 0.01586201600730419
+    P_z = 0.8190943598747253
+    Q_x = 0.6927831650967937
+    Q_y = 0.6744775552191878
+    Q_z = -0.18790285689140143
+    Q_w = 0.1726963521214782
 
     rotation1 = np.array([[rotation_homo1[0][0], rotation_homo1[0][1], rotation_homo1[0][2]], [rotation_homo1[1][0], rotation_homo1[1][1], rotation_homo1[1][2]], [rotation_homo1[2][0], rotation_homo1[2][1], rotation_homo1[2][2]]])
     rotation2 = np.array([[rotation_homo2[0][0], rotation_homo2[0][1], rotation_homo2[0][2]], [rotation_homo2[1][0], rotation_homo2[1][1], rotation_homo2[1][2]], [rotation_homo2[2][0], rotation_homo2[2][1], rotation_homo2[2][2]]])
