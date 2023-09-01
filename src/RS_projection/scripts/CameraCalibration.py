@@ -136,13 +136,14 @@ if __name__ == "__main__":
     point_list.append(center_point)
     list_pts = []
     for p in point_list:
+        #print(p)
         image_points = matrix_rs_NDI.dot(np.transpose(np.append(np.array(p), 1)))
-        #new_point = np.linalg.inv(matrix_rsd_rsc).dot(image_points)
-        # print(new_point)
+        #ew_point = np.linalg.inv(matrix_rsd_rsc).dot(image_points)
+        #print(image_points)
         final_point = matrix_rsc_im.dot(image_points)
-        list_pts.append(
-            final_point[0:2] / final_point[2]
-        )  # scale the points with z normalized to 1
+        pix = final_point[0:2] / final_point[2]
+        print(pix)
+        list_pts.append(pix)  # scale the points with z normalized to 1
     #print(list_pts)
 
     # sort the datapoints
