@@ -1,0 +1,17 @@
+<launch>
+    <node
+        pkg="rosbag"
+        name="play_NDI"
+        type="play"
+        args="$(find interp_cable)/bag_data/NDI-0822.bag"
+    />
+
+    <node
+        pkg="rosbag"
+        name="play_RS"
+        type="play"
+        output="screen"
+        args="$(find interp_cable)/bag_data/2023-08-22-16-13-17.bag"
+    />
+
+</launch>
