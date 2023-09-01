@@ -176,8 +176,8 @@ void Cable::Sort::SortPoints(std::vector<std::vector<double>> &point_set)
         // Find the max probability and its corresponding index
         int max_idx = std::max_element(prob_.begin(), prob_.end()) - prob_.begin();
 
-        ROS_INFO_STREAM("max_idx is: " << max_idx);
-        ROS_INFO_STREAM("probs are: " << prob_[0] << "," << prob_[1] << "," << prob_[2] << "," << prob_[3] << "," << prob_[4] << "," << prob_[5] << "," << prob_[6] << "," << prob_[7] << "," << prob_[8] << "," << prob_[9]);
+        // ROS_INFO_STREAM("max_idx is: " << max_idx);
+        // ROS_INFO_STREAM("probs are: " << prob_[0] << "," << prob_[1] << "," << prob_[2] << "," << prob_[3] << "," << prob_[4] << "," << prob_[5] << "," << prob_[6] << "," << prob_[7] << "," << prob_[8] << "," << prob_[9]);
 
         // avoid swapping the points that has already been sorted
         if (max_idx < i + 1)
@@ -209,7 +209,7 @@ void Cable::Sort::SortPoints(std::vector<std::vector<double>> &point_set)
 
         direction_.push_back(direction_rot);
 
-        ROS_INFO_STREAM("the angular increment is: " << GetAngle(direction_rot, positional_diff_) - GetAngle(direction_[i], positional_diff_));
+        // ROS_INFO_STREAM("the angular increment is: " << GetAngle(direction_rot, positional_diff_) - GetAngle(direction_[i], positional_diff_));
     }
     ROS_INFO_STREAM("point cloud size after sort is: " << point_set.size());
     ROS_INFO("Sort Complete!");

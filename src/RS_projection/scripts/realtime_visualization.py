@@ -22,9 +22,10 @@ class CableRTViz:
 
         rospy.init_node("RT_viz", anonymous=False)
         # rospy.loginfo("realtime_visualization node started")
-        rospy.Subscriber("/sorted_pts", PoseArray, self.CB_interp)
+        rospy.Subscriber("/DOSE/sorted_pts", PoseArray, self.CB_interp)
         rospy.Subscriber("/camera/color/image_raw", Image, self.CB_image)
         # rospy.Subscriber("/camera/depth/color/points", PoseArray, self.CB_depth)
+        self.pub_image_ = rospy.Publisher("/DOSE/overlay", Image, queue_size=10)
         self.rate = rospy.Rate(50)
 
         # Define the class variables
@@ -91,6 +92,10 @@ class CableRTViz:
                     color=(0, 255, 255),
                     thickness=1,
                 )
+
+                # Publish the image to rostopics
+                self.pub_image_.publish(CvBridge().cv2_to_imgmsg(self.rgb_img, "bgr8"))
+
                 rgb_img = cv2.cvtColor(self.rgb_img, cv2.COLOR_BGR2RGB)
                 # plt.clear()
                 plt.imshow(rgb_img)

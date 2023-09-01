@@ -127,8 +127,9 @@ int main(int argc, char **argv)
     // direction_sub = nh.subscribe("/NDI/PointerNew/measured_cp", 1, PointerDirectionCallback);
     //  NDI_vector_sub_ = nh.subscribe("/Normal_vec", 10, NDI_vector_callback);
 
-    sorted_pub = nh.advertise<geometry_msgs::PoseArray>("/sorted_pts", 10);
-    interp_pub = nh.advertise<geometry_msgs::PoseArray>("/interpolated_pts", 10);
+    sorted_pub = nh.advertise<geometry_msgs::PoseArray>("/DOSE/sorted_pts", 10);
+    interp_pub = nh.advertise<geometry_msgs::PoseArray>("/DOSE/interpolated_pts", 10);
+    // DOSE represents Deformable Object Shape Estimation
 
     // set the direction of the end point manually
     end_normal.clear();
@@ -145,7 +146,7 @@ int main(int argc, char **argv)
     while (nh.ok())
     {
         // check for the number of points
-        nh.getParam("/marker_num", num_of_markers);
+        nh.getParam("/DOSE/marker_num", num_of_markers);
         if (num_of_markers == 0)
         {
             ROS_INFO("No markers detected!");
