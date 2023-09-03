@@ -102,7 +102,7 @@ class CableRTViz:
                 # rgb_img = cv2.cvtColor(self.rgb_img, cv2.COLOR_BGR2RGB)
                 # # plt.clear()
                 # plt.imshow(rgb_img)
-                # rospy.loginfo("Image is shown")
+                rospy.loginfo("Image is shown")
                 # plt.draw()
                 # plt.pause(0.00000001)
                 # plt.scatter(pts[:, 0], pts[:, 1], marker="o", color="red", s=250)
@@ -116,10 +116,10 @@ class CableRTViz:
 if __name__ == "__main__":
     T_RS_to_NDI = np.array(
         [
-            [-0.30795141, -0.93400759, -0.18109599, -0.19575269],
-            [-0.35330252,  0.28900212, -0.88975002, -0.78584078],
-            [ 0.8833704,  -0.2100181,  -0.41898585,  0.30760982],
-            [ 0.,          0.,          0.,          1.        ]
+            [0.8647087, -0.22388881, 0.44961391, 0.40562535],
+            [0.09464401, -0.80649196, -0.58362079, -0.62626634],
+            [0.49327617, 0.54721524, -0.67619088, 0.1365595],
+            [0.0, 0.0, 0.0, 1.0],
         ]
     )
 

@@ -92,17 +92,17 @@ void PointerDirectionCallback(const geometry_msgs::TransformStamped &pointer)
 void SetStartPoint()
 {
     start_point.clear();
-    start_point.push_back(245.24);
-    start_point.push_back(-65.73);
-    start_point.push_back(-810.85);
+    start_point.push_back(-9.32);
+    start_point.push_back(-189.56);
+    start_point.push_back(-1059.06);
 }
 
 void SetDirection()
 {
     start_normal.clear();
-    start_normal.push_back(291.2 - (298.2));
-    start_normal.push_back((-28.8 - (-118.3)));
-    start_normal.push_back((-799.4 - (-785.3)));
+    start_normal.push_back(33.54);
+    start_normal.push_back(-15.06);
+    start_normal.push_back(17.47);
 };
 
 int main(int argc, char **argv)
@@ -133,9 +133,9 @@ int main(int argc, char **argv)
 
     // set the direction of the end point manually
     end_normal.clear();
-    end_normal.push_back(-9.0 - (-26.9));
-    end_normal.push_back(-71.9 - (-26.6));
-    end_normal.push_back(-999.1 - (-993.4));
+    end_normal.push_back(14.24);
+    end_normal.push_back(25.05);
+    end_normal.push_back(15.92);
 
     SetDirection();
     SetStartPoint();

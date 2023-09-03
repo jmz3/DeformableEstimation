@@ -131,7 +131,7 @@ void Cable::Sort::SortPoints(std::vector<std::vector<double>> &point_set)
         prob_.clear();
         prob_.assign(pts_num, 0.0);
 
-        ROS_INFO_STREAM("first point is: " << point_set[0][0] << ", " << point_set[0][1] << ", " << point_set[0][2]);
+        // ROS_INFO_STREAM("first point is: " << point_set[0][0] << ", " << point_set[0][1] << ", " << point_set[0][2]);
 
         for (int j = i + 1; j < pts_num; j++)
         {
@@ -211,6 +211,6 @@ void Cable::Sort::SortPoints(std::vector<std::vector<double>> &point_set)
 
         // ROS_INFO_STREAM("the angular increment is: " << GetAngle(direction_rot, positional_diff_) - GetAngle(direction_[i], positional_diff_));
     }
-    ROS_INFO_STREAM("point cloud size after sort is: " << point_set.size());
+    // ROS_INFO_STREAM("point cloud size after sort is: " << point_set.size());
     ROS_INFO("Sort Complete!");
 };
