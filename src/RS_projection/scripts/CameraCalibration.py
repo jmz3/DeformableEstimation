@@ -42,6 +42,7 @@ if __name__ == "__main__":
 
     tool_tip = np.array([-0.1666, 0.0008, -0.0009])
 
+    #Four points on AR tag
     translation1 = np.array([-0.06838, 0.0172999, -0.90594])
     rotation_homo1 = aruco_transformation_matrix(0, 0, 0, 0.2525269271192327, -0.25852756697157087, 0.9099970336070884, 0.203221669666)
 
@@ -54,6 +55,19 @@ if __name__ == "__main__":
     translation4 = np.array([0.02401, -0.02907, -0.83989])
     rotation_homo4 = aruco_transformation_matrix(0, 0, 0,  0.2409242936, -0.138013916644858, 0.9477955710458859, 0.156815812535607)
 
+    #For initial and end direction
+    translation_pts1 = np.array([-0.00775, -0.12065, -0.86726])
+    rotation_pts1 = aruco_transformation_matrix(0, 0, 0, 0.2525269271192327, -0.25852756697157087, 0.9099970336070884, 0.203221669666)
+
+    translation_pts2 = np.array([-0.00775, -0.12065, -0.86726])
+    rotation_pts2 = aruco_transformation_matrix(0, 0, 0, 0.2525269271192327, -0.25852756697157087, 0.9099970336070884, 0.203221669666)
+
+    translation_pts3 = np.array([-0.00775, -0.12065, -0.86726])
+    rotation_pts3 = aruco_transformation_matrix(0, 0, 0, 0.2525269271192327, -0.25852756697157087, 0.9099970336070884, 0.203221669666)
+
+    translation_pts4 = np.array([-0.00775, -0.12065, -0.86726])
+    rotation_pts4 = aruco_transformation_matrix(0, 0, 0, 0.2525269271192327, -0.25852756697157087, 0.9099970336070884, 0.203221669666)
+    
     P_x = 0.05185291916131973
     P_y = 0.01586201600730419
     P_z = 0.8190943598747253
@@ -67,15 +81,28 @@ if __name__ == "__main__":
     rotation3 = np.array([[rotation_homo3[0][0], rotation_homo3[0][1], rotation_homo3[0][2]], [rotation_homo3[1][0], rotation_homo3[1][1], rotation_homo3[1][2]], [rotation_homo3[2][0], rotation_homo3[2][1], rotation_homo3[2][2]]])
     rotation4 = np.array([[rotation_homo4[0][0], rotation_homo4[0][1], rotation_homo4[0][2]], [rotation_homo4[1][0], rotation_homo4[1][1], rotation_homo4[1][2]], [rotation_homo4[2][0], rotation_homo4[2][1], rotation_homo4[2][2]]])
     
+    R_pts1 = np.array([[rotation_pts1[0][0], rotation_pts1[0][1], rotation_pts1[0][2]], [rotation_pts1[1][0], rotation_pts1[1][1], rotation_pts1[1][2]], [rotation_pts1[2][0], rotation_pts1[2][1], rotation_pts1[2][2]]])
+    R_pts2 = np.array([[rotation_pts2[0][0], rotation_pts2[0][1], rotation_pts2[0][2]], [rotation_pts2[1][0], rotation_pts2[1][1], rotation_pts2[1][2]], [rotation_pts2[2][0], rotation_pts2[2][1], rotation_pts2[2][2]]])
+    R_pts3 = np.array([[rotation_pts3[0][0], rotation_pts3[0][1], rotation_pts3[0][2]], [rotation_pts3[1][0], rotation_pts3[1][1], rotation_pts3[1][2]], [rotation_pts3[2][0], rotation_pts3[2][1], rotation_pts3[2][2]]])
+    R_pts4 = np.array([[rotation_pts4[0][0], rotation_pts4[0][1], rotation_pts4[0][2]], [rotation_pts4[1][0], rotation_pts4[1][1], rotation_pts4[1][2]], [rotation_pts4[2][0], rotation_pts4[2][1], rotation_pts4[2][2]]])
+
     point1 = np.transpose(rotation1.dot(np.transpose(tool_tip)) + np.transpose(translation1))
     point2 = np.transpose(rotation2.dot(np.transpose(tool_tip)) + np.transpose(translation2))
     point3 = np.transpose(rotation3.dot(np.transpose(tool_tip)) + np.transpose(translation3))
     point4 = np.transpose(rotation4.dot(np.transpose(tool_tip)) + np.transpose(translation4))
     
-
+    start1 = np.transpose(R_pts1.dot(np.transpose(tool_tip)) + np.transpose(translation_pts1))
+    start2 = np.transpose(R_pts2.dot(np.transpose(tool_tip)) + np.transpose(translation_pts2))
+    end1 = np.transpose(R_pts3.dot(np.transpose(tool_tip)) + np.transpose(translation_pts3))
+    end2 = np.transpose(R_pts4.dot(np.transpose(tool_tip)) + np.transpose(translation_pts4))
     #calculate the center point 
     center_point = (point1 + point2 + point3 + point4) /4
 
+    vec1 = start1 - start2
+    vec2 = end2 - end1
+
+    print("inital direction: ", vec1)
+    print("end direction: ", vec2)
     #compute the Z axis
     vector_c1 = point1 - center_point
     vector_c2 = point2 - center_point
