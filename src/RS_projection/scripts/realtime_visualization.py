@@ -26,7 +26,7 @@ class CableRTViz:
         rospy.Subscriber("/camera/color/image_raw", Image, self.CB_image)
         # rospy.Subscriber("/camera/depth/color/points", PoseArray, self.CB_depth)
         self.pub_image_ = rospy.Publisher("/DOSE/overlay", Image, queue_size=10)
-        self.rate = rospy.Rate(50)
+        self.rate = rospy.Rate(100)
 
         # Define the class variables
         self.point_list = None
@@ -92,7 +92,7 @@ class CableRTViz:
                 #     color=(0, 255, 255),
                 #     thickness=1,
                 # )
-                print(pts)
+                # print(pts)
                 # Publish the image to rostopics
                 for p in pts:
                     cv2.circle(self.rgb_img, (p[0], p[1]), 10, (0, 0, 255), -1)
