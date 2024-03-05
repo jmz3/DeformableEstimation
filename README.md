@@ -1,40 +1,46 @@
-# DeformableEstimation
+# Realtime Robust Shape Estimation of Deformable Linear Object
 
-This repo is made for estimating the center of mass for a linear deformable object in the real-time. The whole package is built via ROS.
+This repo is made for estimation the shape and center of mass for a linear deformable object in the real-time with ROS functionalities. This package is a part of the project of adaptive robotic TMS system developed by [BIGSS Lab](https://bigss.lcsr.jhu.edu/) and [VOR Lab](https://vorlab.jhu.edu/) at Johns Hopkins University.
 
+## How to use
+Clone this repo to the `root` (not `root/src`!) of your catkin workspace, and then run `catkin build` to build the package.
 
-## Develop Log
-### 2023 02 06
-<p>Tried with ros interpolation library ecl. Not working. Deprecated packages and insufficient support of CMake guide and other usage.</p>
+* Run the Sorting and Interpolation Node
 
-### 2023 02 19
-<p>
-Fixed matplotlib-cpp bugs.
-You have to specify the figure index when you call plot3 func.</p>
+This is the main node of the package. It will subscribe to the topics published by the optical tracker and the RealSense camera, and then publish the estimated center of mass and the shape of the deformable object.
 
-### 2023 02 27
-<p>
-Tested on data recorded using rosbag.
-Add Functionality for asking whether to include the start point in the Optical Reading Set.</p>
+```bash
+rosrun interp_cable interp_cable_node
+```
 
-### 2023 03 03
-Integrated ROS with taichi package. To avoid the conflicts between the anaconda env and ros default env, we can simply install taichi on the base python environment where the ros is installed.
+This node will subscribe to the topics published by the optical tracker and the RealSense camera, and then publish the estimated center of mass and the shape of the deformable object.
 
-Of course there is another more elegant way of doing this, which is install ros-noetic via conda install command. The introduction to the repo can be found [here](https://github.com/RoboStack/ros-noetic)
+The predefined topics are:
+- `/NDI/measured_cp_array`, with type of `geometry_msgs::PoseArray`for the optical tracker
+- `/camera/color/image_raw` for the RealSense camera
 
-### 2023 03 06
-Need to register physics engine frame and the optical tracker frame
+If you want to run this node based on your device, you can remap the topics from your device to the predefined topics or modify the source code to subscribe to the topics you want.
 
-### 2023 06 05
-Try to solve the 4 point scenario in 2D plane with no prior knowledge about the direction of any point.
+* Run the calibration node
 
-### 2023 07 25
-Implemented the visualization for sensor fusion of optical tracker and RealSense RGBD camera. Now the interpolation and sorting result is overlaid on the 2D images captured by the RealSense camera.
+This node is used to calibrate the transformation between the optical tracker and the RealSense camera. It will subscribe to the topics published by the optical tracker and the RealSense camera, and then publish the transformation between the two frames.
 
-### 2023 08 21
-[Feature Added]:
-- Added the realtime visualization for the sensor fusion of optical tracker and RealSense RGBD camera. 
-- Now the node can be run on a slave machine by specifying the ROS_MASTER_URI and ROS_IP, and the node can subscribe to the NDI topics published by the master machine.
+```bash
+chmod +x CameraCalibration.py
+rosrun RS_projection CameraCalibration.py
+```
 
-[Bug Fixed]:
-- Solved the buggy problem of Rodrigues rotation calculation. 
+## License
+This repo is under the MIT License. See the [LICENSE](LICENSE) file for the full license text. 
+
+## Citation
+This work has been submitted to the [IEEE International Conference on Robotics and Automation (ICRA) 2024](https://2024.ieee-icra.org/). If you find this work helpful, please consider citing it:
+<!-- 
+```bibtex
+@inproceedings{zhang2024realtime,
+    title={Realtime Robust Shape Estimation of Deformable Linear Object},
+    author={Zhang, Jiaming and others},
+    booktitle={IEEE International Conference on Robotics and Automation (ICRA)},
+    year={2024}
+}
+``` -->
