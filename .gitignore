@@ -148,4 +148,9 @@ cmake-build-release/
 *.png
 *.jpg
 
+# unity data
+*.meta
+*.csv
 
+# video data
+*.mp4
