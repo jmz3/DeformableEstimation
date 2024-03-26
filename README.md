@@ -43,7 +43,7 @@ This work has been submitted to the [IEEE International Conference on Robotics a
       journal = {arXiv e-prints},
          year = 2024,
         month = mar,
-          eid = {arXiv:2403.16146}
+          eid = {arXiv:2403.16146},
         pages = {arXiv:2403.16146},
 }
 ```
